@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OFFSCREEN — i quit my office job and honestly? best decision ever.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com">
+<link rel="preconnect" href="https://images.pexels.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS — Zine Culture / Acid-Bright Optimism
+   Syne + Instrument Serif + Space Mono
+   Chartreuse / Violet / Coral palette
+   ============================================================ */
+:root {
+  --bg-surface: #E8E4DF;
+  --paper: #FAF9F7;
+  --paper-warm: #F5F0E8;
+  --paper-dark: #1A1625;
+  --text-primary: #1A1625;
+  --text-secondary: #3D3650;
+  --text-caption: #8A839A;
+  --text-on-dark: #FAF9F7;
+
+  /* Primary palette — acid chartreuse, electric violet, hot coral */
+  --lime: #C8FB00;
+  --lime-muted: #E5FFA0;
+  --lime-dark: #8AB300;
+  --violet: #7B2FFF;
+  --violet-light: #EDE5FF;
+  --violet-glow: rgba(123, 47, 255, 0.12);
+  --coral: #FF5154;
+  --coral-light: #FFE5E5;
+  --coral-glow: rgba(255, 81, 84, 0.1);
+
+  /* Accent colors */
+  --sky: #00D4FF;
+  --sky-light: #E0F9FF;
+  --tangerine: #FF9A2E;
+  --tangerine-light: #FFF3E0;
+  --blush: #FFB8D9;
+  --sage: #B8E0C8;
+
+  /* Typography */
+  --font-display: 'Syne', -apple-system, sans-serif;
+  --font-editorial: 'Instrument Serif', Georgia, serif;
+  --font-mono: 'Space Mono', 'Courier New', monospace;
+
+  /* Spacing & geometry */
+  --page-pad: clamp(20px, 3vw, 40px);
+  --page-ratio: 210 / 297;
+
+  /* Radii — mix of sharp and round for zine energy */
+  --radius: 12px;
+  --radius-sm: 6px;
+  --radius-lg: 20px;
+  --radius-pill: 100px;
+  --radius-none: 0px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-mono);
+  background: var(--bg-surface);
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(200, 251, 0, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 30%, rgba(123, 47, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, rgba(255, 81, 84, 0.06) 0%, transparent 40%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100dvh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ============================================================
+   VIEWER AREA
+   ============================================================ */
+.viewer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 16px 56px;
+}
+
+/* ============================================================
+   SPREAD CONTAINER
+   ============================================================ */
+.spread {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  height: 92vh;
+  max-height: 92vh;
+  transition: opacity 0.28s ease, transform 0.28s ease;
+  position: relative;
+}
+.spread.turning-fwd  { opacity: 0; transform: translateX(-18px) scale(0.97); }
+.spread.turning-back { opacity: 0; transform: translateX(18px) scale(0.97); }
+.spread.entering-fwd  { opacity: 0; transform: translateX(18px) scale(0.97); }
+.spread.entering-back { opacity: 0; transform: translateX(-18px) scale(0.97); }
+
+.spread.is-spread::after {
+  content: '';
+  position: absolute;
+  top: 2%;
+  bottom: 2%;
+  left: 50%;
+  width: 40px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ============================================================
+   PAGE
+   ============================================================ */
+.page {
+  aspect-ratio: var(--page-ratio);
+  height: 92vh;
+  max-height: 92vh;
+  background: var(--paper);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: none;
+  flex-direction: column;
+  border-radius: 2px;
+}
+.page.single-page {
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.06),
+    0 8px 32px rgba(0,0,0,0.08),
+    0 20px 60px rgba(0,0,0,0.05);
+}
+.page.left-page {
+  box-shadow:
+    -4px 2px 16px rgba(0,0,0,0.06),
+    -8px 4px 32px rgba(0,0,0,0.06),
+    inset -16px 0 24px -16px rgba(0,0,0,0.04);
+  border-right: 1px solid rgba(0,0,0,0.03);
+  border-radius: 2px 0 0 2px;
+}
+.page.right-page {
+  box-shadow:
+    4px 2px 16px rgba(0,0,0,0.06),
+    8px 4px 32px rgba(0,0,0,0.06),
+    inset 16px 0 24px -16px rgba(0,0,0,0.04);
+  border-left: 1px solid rgba(0,0,0,0.03);
+  border-radius: 0 2px 2px 0;
+}
+.page.visible { display: flex; }
+
+.page-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Running footer */
+.page-footer {
+  position: absolute;
+  bottom: 12px;
+  left: var(--page-pad);
+  right: var(--page-pad);
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-caption);
+  z-index: 3;
+}
+
+/* ============================================================
+   NAV ARROWS
+   ============================================================ */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  background: var(--paper);
+  border: 2px solid var(--text-primary);
+  border-radius: var(--radius-none);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+  font-size: 18px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+.nav-arrow:hover { background: var(--lime); border-color: var(--text-primary); }
+.nav-arrow:active { transform: translateY(-50%) scale(0.92); }
+.nav-arrow.disabled { opacity: 0.15; pointer-events: none; }
+.nav-prev { left: 8px; }
+.nav-next { right: 8px; }
+
+/* ============================================================
+   BOTTOM BAR (page indicator)
+   ============================================================ */
+.bottombar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 0;
+  background: rgba(26,22,37,0.15);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+.dot.active { background: var(--violet); transform: scaleY(2.5); width: 6px; }
+.dot:hover { background: rgba(26,22,37,0.35); }
+
+/* ============================================================
+   VIEW MODE TOGGLE
+   ============================================================ */
+.mode-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 200;
+  display: flex;
+  gap: 2px;
+  background: var(--paper);
+  border: 2px solid var(--text-primary);
+  border-radius: var(--radius-none);
+  padding: 2px;
+}
+.mode-btn {
+  background: none;
+  border: none;
+  color: var(--text-caption);
+  padding: 5px 10px;
+  border-radius: 0;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-transform: uppercase;
+}
+.mode-btn:hover { color: var(--text-primary); }
+.mode-btn.active { background: var(--violet); color: #fff; }
+.mode-btn svg { width: 16px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+/* Page number overlay */
+.page-num {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--lime);
+  padding: 4px 14px;
+  border-radius: var(--radius-none);
+  border: 2px solid var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   BRANDING WATERMARK
+   ============================================================ */
+.branding {
+  position: fixed;
+  bottom: 10px;
+  right: 14px;
+  z-index: 200;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  opacity: 0.3;
+  color: var(--text-caption);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+.branding:hover { opacity: 0.7; }
+
+/* ============================================================
+   VIDEO BACKGROUNDS
+   ============================================================ */
+.video-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+.video-bg video,
+.video-bg img.video-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* ============================================================
+   COVER PAGE — raw zine energy
+   ============================================================ */
+.cover {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background: var(--text-primary);
+}
+.cover .video-bg::after {
+  background: linear-gradient(170deg,
+    rgba(123, 47, 255, 0.7) 0%,
+    rgba(26, 22, 37, 0.6) 40%,
+    rgba(200, 251, 0, 0.3) 80%,
+    rgba(255, 81, 84, 0.4) 100%);
+  mix-blend-mode: multiply;
+}
+.cover-grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 3;
+}
+.cover-content {
+  position: relative;
+  z-index: 5;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--page-pad);
+  color: #fff;
+}
+.cover-masthead {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 6vw, 56px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--lime);
+}
+.cover-date {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 6px;
+  opacity: 0.6;
+}
+.cover-issue-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.cover-issue-bar span {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+.cover-issue-bar .divider {
+  width: 30px;
+  height: 2px;
+  background: var(--lime);
+  opacity: 0.5;
+}
+.cover-kicker {
+  display: inline-block;
+  background: var(--lime);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: var(--radius-none);
+  margin-top: auto;
+  margin-bottom: 10px;
+  width: fit-content;
+}
+.cover-headline {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 4vw, 40px);
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -0.04em;
+  max-width: 70%;
+  text-transform: lowercase;
+}
+.cover-headline .italic-word {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.cover-deck {
+  font-family: var(--font-mono);
+  font-size: clamp(9px, 1.1vw, 12px);
+  font-weight: 400;
+  line-height: 1.6;
+  max-width: 55%;
+  margin-top: 12px;
+  opacity: 0.7;
+}
+.cover-byline {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 12px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+/* Rotated sticker on cover */
+.cover-sticker {
+  position: absolute;
+  top: 16%;
+  right: 6%;
+  width: clamp(55px, 9vw, 80px);
+  height: clamp(55px, 9vw, 80px);
+  background: var(--coral);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-8deg);
+  z-index: 6;
+  border: 3px solid var(--paper);
+}
+.cover-sticker span {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(7px, 1.2vw, 11px);
+  text-align: center;
+  line-height: 1.15;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+/* Geometric deco on cover */
+.cover-geo {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+}
+.cover-geo.star {
+  bottom: 25%;
+  right: 4%;
+  width: clamp(30px, 5vw, 50px);
+  height: clamp(30px, 5vw, 50px);
+  background: var(--tangerine);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  opacity: 0.7;
+}
+.cover-geo.cross {
+  top: 45%;
+  right: 22%;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(30px, 5vw, 50px);
+  color: var(--lime);
+  opacity: 0.25;
+  line-height: 1;
+}
+
+/* ============================================================
+   KICKER TAG — square, loud
+   ============================================================ */
+.kicker {
+  display: inline-block;
+  background: var(--violet);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: clamp(7px, 0.8vw, 9px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: var(--radius-none);
+  width: fit-content;
+  margin-bottom: 10px;
+}
+.kicker.lime { background: var(--lime); color: var(--text-primary); }
+.kicker.coral { background: var(--coral); color: #fff; }
+.kicker.sky { background: var(--sky); color: var(--text-primary); }
+.kicker.tangerine { background: var(--tangerine); color: var(--text-primary); }
+
+/* ============================================================
+   SECTION TITLE — Syne bold with editorial italic accent
+   ============================================================ */
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(22px, 3.5vw, 38px);
+  line-height: 1.0;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  text-transform: lowercase;
+}
+.section-title .serif-word {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--violet);
+  letter-spacing: -0.01em;
+}
+.section-title .underline-word {
+  text-decoration: underline;
+  text-decoration-color: var(--lime);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 3px;
+}
+
+/* ============================================================
+   BODY TEXT — Space Mono for zine authenticity
+   ============================================================ */
+.body-text {
+  font-family: var(--font-mono);
+  font-size: clamp(9.5px, 1.15vw, 12px);
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+.body-text p { margin-bottom: 10px; }
+.body-text .lead {
+  font-family: var(--font-display);
+  font-size: clamp(13px, 1.7vw, 17px);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+.body-text .aside {
+  font-style: italic;
+  color: var(--text-caption);
+  font-size: clamp(9px, 1vw, 11px);
+}
+
+/* ============================================================
+   PULL QUOTE — bold box, not rounded
+   ============================================================ */
+.pull-quote {
+  background: var(--violet-light);
+  border-left: 4px solid var(--violet);
+  padding: clamp(12px, 1.8vw, 22px);
+  margin: 14px 0;
+  position: relative;
+}
+.pull-quote::before {
+  content: '\201C';
+  font-family: var(--font-editorial);
+  font-size: clamp(44px, 6vw, 64px);
+  font-style: italic;
+  color: var(--violet);
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  line-height: 1;
+  opacity: 0.25;
+}
+.pull-quote p {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: clamp(14px, 2vw, 20px);
+  line-height: 1.35;
+  color: var(--text-primary);
+  padding-left: 4px;
+}
+
+/* Alt pull quote — lime bg */
+.pull-quote.lime-quote {
+  background: var(--lime);
+  border-left-color: var(--text-primary);
+}
+.pull-quote.lime-quote::before { color: var(--text-primary); }
+.pull-quote.lime-quote p { color: var(--text-primary); }
+
+/* ============================================================
+   IMAGES — mixed frame styles
+   ============================================================ */
+.img-block {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+}
+.img-block img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Tape-style frame */
+.img-tape {
+  position: relative;
+  transform: rotate(-1deg);
+  background: #fff;
+  padding: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+.img-tape::before,
+.img-tape::after {
+  content: '';
+  position: absolute;
+  width: clamp(30px, 4vw, 50px);
+  height: clamp(12px, 1.5vw, 18px);
+  background: rgba(200, 251, 0, 0.5);
+  z-index: 5;
+}
+.img-tape::before { top: -6px; left: 15%; transform: rotate(-3deg); }
+.img-tape::after { bottom: -6px; right: 20%; transform: rotate(2deg); }
+
+/* Stamp-style frame */
+.img-stamp {
+  border: 3px solid var(--text-primary);
+  padding: 4px;
+  background: #fff;
+}
+.img-stamp .img-block { border-radius: 0; }
+
+/* ============================================================
+   ARTICLE PAGE LAYOUTS
+   ============================================================ */
+.article-page {
+  padding: var(--page-pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0;
+}
+
+/* Full-bleed */
+.full-bleed {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.full-bleed img,
+.full-bleed video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.full-bleed::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(26,22,37,0.8) 0%, rgba(26,22,37,0.3) 40%, transparent 65%);
+}
+.full-bleed-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--page-pad);
+  color: #fff;
+}
+
+/* Two-column layout */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(10px, 1.8vw, 22px);
+  flex: 1;
+}
+.two-col.uneven { grid-template-columns: 1.4fr 1fr; }
+.two-col.uneven-r { grid-template-columns: 1fr 1.4fr; }
+
+/* Accent blocks — solid color boxes */
+.accent-block {
+  background: var(--violet);
+  color: #fff;
+  padding: clamp(14px, 2vw, 24px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.accent-block.lime { background: var(--lime); color: var(--text-primary); }
+.accent-block.coral { background: var(--coral); color: #fff; }
+.accent-block.dark { background: var(--text-primary); color: var(--lime); }
+
+/* Numbered list */
+.advice-list {
+  list-style: none;
+  counter-reset: advice;
+}
+.advice-list li {
+  counter-increment: advice;
+  padding: clamp(8px, 1.1vw, 13px) 0;
+  border-bottom: 2px solid var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: clamp(9px, 1.1vw, 12px);
+  line-height: 1.65;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.advice-list li:first-child {
+  border-top: 2px solid var(--text-primary);
+}
+.advice-list li::before {
+  content: counter(advice, decimal-leading-zero);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(22px, 3vw, 34px);
+  color: var(--violet);
+  line-height: 1;
+  flex-shrink: 0;
+  min-width: 36px;
+}
+
+/* ============================================================
+   SECTION OPENER (video bg)
+   ============================================================ */
+.section-opener {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.section-opener .video-bg::after {
+  background: linear-gradient(to top,
+    rgba(26, 22, 37, 0.85) 0%,
+    rgba(26, 22, 37, 0.4) 35%,
+    rgba(123, 47, 255, 0.15) 60%,
+    transparent 100%);
+}
+.section-opener-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--page-pad);
+  color: #fff;
+}
+
+/* ============================================================
+   VISUAL BREAK PAGE
+   ============================================================ */
+.visual-break {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.visual-break .video-bg::after {
+  background: linear-gradient(135deg,
+    rgba(200, 251, 0, 0.45) 0%,
+    rgba(123, 47, 255, 0.3) 50%,
+    rgba(255, 81, 84, 0.35) 100%);
+  mix-blend-mode: hard-light;
+}
+.visual-break-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-pad);
+  text-align: center;
+  color: #fff;
+}
+
+/* ============================================================
+   BACK COVER
+   ============================================================ */
+.back-cover {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-pad);
+  text-align: center;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  background: var(--text-primary);
+}
+.back-cover .video-bg::after {
+  background: rgba(26, 22, 37, 0.85);
+}
+.back-cover-logo {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 7vw, 60px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--lime);
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 2;
+}
+.back-cover-tagline {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: clamp(12px, 1.6vw, 17px);
+  opacity: 0.6;
+  max-width: 280px;
+  line-height: 1.5;
+  position: relative;
+  z-index: 2;
+}
+.back-cover-socials {
+  margin-top: 24px;
+  display: flex;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+}
+.social-pill {
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  border: 1px solid rgba(255,255,255,0.15);
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+.social-pill:hover { border-color: var(--lime); color: var(--lime); }
+
+/* ============================================================
+   DECORATIVE ELEMENTS — geometric zine shapes
+   ============================================================ */
+.deco-stripe {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+.deco-dot-grid {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(4, 4px);
+  grid-template-rows: repeat(4, 4px);
+  gap: 4px;
+}
+.deco-dot-grid span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.sticker-tag {
+  display: inline-block;
+  background: var(--lime);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(7px, 0.9vw, 10px);
+  padding: 4px 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transform: rotate(-3deg);
+  border: 2px solid var(--text-primary);
+}
+
+/* ============================================================
+   PRINT SUPPORT
+   ============================================================ */
+@media print {
+  body {
+    background: none !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  .viewer { padding: 0 !important; overflow: visible !important; }
+  .spread { height: auto !important; max-height: none !important; }
+  .page {
+    display: flex !important;
+    page-break-after: always;
+    page-break-inside: avoid;
+    height: 100vh !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+  .page.visible, .page:not(.visible) { display: flex !important; }
+  .nav-arrow, .bottombar, .mode-toggle, .page-num, .branding { display: none !important; }
+  .spread::after { display: none !important; }
+  video { display: none !important; }
+  .video-bg img.video-poster { display: block !important; }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .viewer { padding: 8px 12px; }
+  .cover-headline { max-width: 85%; font-size: clamp(18px, 5vw, 28px); }
+  .cover-deck { max-width: 80%; }
+  .two-col, .two-col.uneven, .two-col.uneven-r {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .nav-arrow { width: 36px; height: 36px; font-size: 14px; }
+  .mode-toggle { display: none; }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .spread { transition: none; }
+  .spread.turning-fwd,
+  .spread.turning-back,
+  .spread.entering-fwd,
+  .spread.entering-back { transform: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- View Mode Toggle -->
+<div class="mode-toggle">
+  <button class="mode-btn active" id="singleBtn" aria-label="Single page view">
+    <svg viewBox="0 0 16 14"><rect x="3" y="1" width="10" height="12" rx="0"/></svg>
+    1-up
+  </button>
+  <button class="mode-btn" id="spreadBtn" aria-label="Two-page spread view">
+    <svg viewBox="0 0 16 14"><rect x="1" y="1" width="6" height="12" rx="0"/><rect x="9" y="1" width="6" height="12" rx="0"/></svg>
+    2-up
+  </button>
+</div>
+
+<!-- Page Number -->
+<div class="page-num" id="pageNum">1 / 10</div>
+
+<!-- Main Viewer -->
+<div class="viewer" id="viewer">
+
+  <!-- Nav Arrows -->
+  <button class="nav-arrow nav-prev" id="prevBtn" aria-label="Previous page">&larr;</button>
+  <button class="nav-arrow nav-next" id="nextBtn" aria-label="Next page">&rarr;</button>
+
+  <!-- Spread Container -->
+  <div class="spread" id="spread">
+
+    <!-- ===================== PAGE 1: COVER ===================== -->
+    <div class="page" data-page="1">
+      <div class="page-inner">
+        <div class="cover">
+          <div class="video-bg" data-video>
+            <video muted loop playsinline preload="metadata"
+              poster="https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800&q=80&fm=jpg&crop=entropy&cs=srgb">
+              <source src="https://videos.pexels.com/video-files/3254066/3254066-uhd_2560_1440_25fps.mp4" type="video/mp4">
+            </video>
+            <img class="video-poster" src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800&q=80&fm=jpg&crop=entropy&cs=srgb" alt="People in creative workspace" style="display:none;" loading="eager" width="800" height="600">
+          </div>
+          <div class="cover-grain"></div>
+          <div class="cover-sticker">
+            <span>Real<br>Talk</span>
+          </div>
+          <div class="cover-geo star"></div>
+          <div class="cover-geo cross">+</div>
+          <div class="cover-content">
+            <div class="cover-masthead">Offscreen</div>
+            <div class="cover-issue-bar">
+              <span>Issue 14</span>
+              <div class="divider"></div>
+              <span>March 2026</span>
+            </div>
+            <div class="cover-kicker">Real Talk</div>
+            <h1 class="cover-headline">i quit my office job and <span class="italic-word">honestly?</span> best decision ever.</h1>
+            <p class="cover-deck">Remote work isn't about the laptop-on-the-beach fantasy. It's about finally having time to think.</p>
+            <div class="cover-byline">words by Jamie Torres &middot; March 2026</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 2: OPENING SPREAD ===================== -->
+    <div class="page" data-page="2">
+      <div class="page-inner">
+        <div class="section-opener">
+          <div class="video-bg" data-video>
+            <video muted loop playsinline preload="metadata"
+              poster="https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb">
+              <source src="https://videos.pexels.com/video-files/1851768/1851768-hd_1920_1080_24fps.mp4" type="video/mp4">
+            </video>
+            <img class="video-poster" src="https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Minimal workspace from above" style="display:none;" loading="lazy" width="1200" height="800">
+          </div>
+          <div class="section-opener-content">
+            <div class="kicker lime">Real Talk</div>
+            <h2 style="font-family:var(--font-display);font-size:clamp(18px,3.2vw,34px);font-weight:800;line-height:1.02;letter-spacing:-0.04em;max-width:85%;text-transform:lowercase;">i quit my office job and <span style="font-family:var(--font-editorial);font-style:italic;font-weight:400;letter-spacing:-0.01em;">honestly?</span> best decision ever.</h2>
+            <p style="font-family:var(--font-mono);font-size:clamp(9px,1.1vw,12px);margin-top:10px;opacity:0.65;max-width:65%;line-height:1.65;">Remote work isn't about the laptop-on-the-beach fantasy. It's about finally having time to think.</p>
+            <p style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;margin-top:12px;opacity:0.4;">Words by Jamie Torres &middot; March 2026</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 3: SECTION 1 — the breaking point ===================== -->
+    <div class="page" data-page="3">
+      <div class="page-inner">
+        <div class="article-page">
+          <div class="kicker">Section 01</div>
+          <h2 class="section-title">the <span class="serif-word">breaking</span> <span class="underline-word">point</span></h2>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
+            <div class="body-text">
+              <p class="lead">So here's the thing.</p>
+              <p>I was sitting in a meeting about a meeting about another meeting and I just... left. Not dramatically. I didn't flip a table. I just opened my laptop, wrote a two-week notice, and felt my shoulders drop for the first time in months.</p>
+              <p class="aside">(I know. Very main character of me.)</p>
+            </div>
+
+            <div class="img-tape" style="flex:0 0 auto;max-height:32%;">
+              <div class="img-block" style="height:100%;border-radius:2px;">
+                <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=600&q=80&fm=jpg&crop=entropy&cs=srgb" alt="People in a corporate meeting room" loading="lazy" width="600" height="400">
+              </div>
+            </div>
+
+            <div class="body-text" style="margin-top:auto;">
+              <p>The corporate world has this trick where it makes you believe your identity is your job title. Senior Associate blah blah blah. Cool. But when someone asks you what you actually DO all day and you can't answer without using the word "synergy," that's your sign.</p>
+            </div>
+          </div>
+
+          <!-- Decorative dot grid -->
+          <div class="deco-dot-grid" style="bottom:40px;right:20px;color:var(--lime);opacity:0.4;">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </div>
+
+          <div class="page-footer">
+            <span>Offscreen</span>
+            <span>03</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 4: SECTION 2 — the reality check ===================== -->
+    <div class="page" data-page="4">
+      <div class="page-inner">
+        <div class="article-page">
+          <div class="kicker coral">Section 02</div>
+          <h2 class="section-title">the <span class="serif-word">reality</span> check</h2>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+            <div class="body-text">
+              <p class="lead">Let me be honest: the first month sucked.</p>
+              <p>No structure. No one pinging me. No reason to put on pants. You think you want freedom until you have it and you're eating cereal at 2pm watching your third YouTube video about productivity systems you'll never use.</p>
+            </div>
+
+            <div class="pull-quote lime-quote">
+              <p>You think you want freedom until you have it and you're eating cereal at 2pm.</p>
+            </div>
+
+            <div class="body-text">
+              <p>But then something shifted. I started building things. Not decks. Not reports. Actual things. A newsletter. A side project. A morning routine that didn't involve a commute.</p>
+            </div>
+          </div>
+
+          <!-- Decorative stripe -->
+          <div class="deco-stripe" style="bottom:0;left:0;right:0;height:6px;background:var(--coral);"></div>
+
+          <div class="page-footer">
+            <span>Real Talk</span>
+            <span>04</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 5: VISUAL BREAK — video mood page ===================== -->
+    <div class="page" data-page="5">
+      <div class="page-inner">
+        <div class="visual-break">
+          <div class="video-bg" data-video>
+            <video muted loop playsinline preload="metadata"
+              poster="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&q=80&fm=jpg&crop=entropy&cs=srgb">
+              <source src="https://videos.pexels.com/video-files/6897966/6897966-uhd_2732_1440_25fps.mp4" type="video/mp4">
+            </video>
+            <img class="video-poster" src="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Person writing in a notebook" style="display:none;" loading="lazy" width="800" height="600">
+          </div>
+          <div class="visual-break-content">
+            <div class="sticker-tag" style="margin-bottom:20px;transform:rotate(-5deg);">mood shift</div>
+            <p style="font-family:var(--font-display);font-weight:800;font-size:clamp(20px,3.8vw,34px);line-height:1.05;letter-spacing:-0.04em;max-width:80%;text-shadow:0 2px 40px rgba(0,0,0,0.5);text-transform:lowercase;">
+              Building things that actually <span style="color:var(--lime);font-family:var(--font-editorial);font-style:italic;font-weight:400;">matter</span> to you hits different.
+            </p>
+            <p style="font-family:var(--font-mono);font-size:clamp(8px,0.9vw,11px);opacity:0.5;margin-top:16px;max-width:55%;line-height:1.65;letter-spacing:0.02em;">
+              Not decks. Not reports. Actual things.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 6: SECTION 3 — what nobody tells you ===================== -->
+    <div class="page" data-page="6">
+      <div class="page-inner">
+        <div class="article-page">
+          <div class="kicker sky">Section 03</div>
+          <h2 class="section-title">what <span class="serif-word">nobody</span> tells you</h2>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+            <div class="body-text">
+              <p class="lead">The loneliness is real.</p>
+              <p>The self-doubt is real. The "am I wasting my life" 3am spiral is very, very real.</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div class="img-stamp" style="transform:rotate(-1.5deg);">
+                <div class="img-block">
+                  <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Person reading a book" loading="lazy" width="400" height="300" style="aspect-ratio:4/3;object-fit:cover;">
+                </div>
+              </div>
+              <div class="img-tape" style="transform:rotate(1.5deg);">
+                <div class="img-block" style="border-radius:2px;">
+                  <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Person cooking in a kitchen" loading="lazy" width="400" height="300" style="aspect-ratio:4/3;object-fit:cover;">
+                </div>
+              </div>
+            </div>
+
+            <div class="body-text">
+              <p>But also? I read 12 books last month. I learned to cook something that wasn't pasta. I called my mom on a Tuesday afternoon just because I could.</p>
+            </div>
+
+            <div class="pull-quote" style="margin-top:auto;">
+              <p>The ROI on that doesn't fit in a spreadsheet.</p>
+            </div>
+          </div>
+
+          <div class="page-footer">
+            <span>Real Talk</span>
+            <span>06</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 7: BIG QUOTE — typographic statement page ===================== -->
+    <div class="page" data-page="7">
+      <div class="page-inner">
+        <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--page-pad);text-align:center;position:relative;background:var(--text-primary);color:#fff;overflow:hidden;">
+
+          <!-- Big lime stripe background -->
+          <div style="position:absolute;top:50%;left:-10%;width:120%;height:clamp(50px,10vw,90px);background:var(--lime);transform:rotate(-4deg);z-index:1;opacity:0.15;"></div>
+
+          <!-- Scattered tags -->
+          <div class="sticker-tag" style="position:absolute;top:10%;left:8%;transform:rotate(-10deg);font-size:clamp(7px,0.9vw,10px);">12 books</div>
+          <div class="sticker-tag" style="position:absolute;top:16%;right:10%;transform:rotate(6deg);background:var(--sky);border-color:var(--sky);font-size:clamp(7px,0.9vw,10px);">real food</div>
+          <div class="sticker-tag" style="position:absolute;bottom:18%;left:12%;transform:rotate(4deg);background:var(--blush);border-color:var(--blush);font-size:clamp(7px,0.9vw,10px);">no commute</div>
+          <div class="sticker-tag" style="position:absolute;bottom:13%;right:8%;transform:rotate(-7deg);background:var(--coral);border-color:var(--coral);color:#fff;font-size:clamp(7px,0.9vw,10px);">freedom</div>
+
+          <!-- Small deco elements -->
+          <div class="deco-dot-grid" style="top:30%;left:5%;color:var(--violet);opacity:0.2;">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="deco-dot-grid" style="bottom:30%;right:5%;color:var(--coral);opacity:0.15;">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </div>
+
+          <div style="position:relative;z-index:2;max-width:80%;">
+            <div class="kicker lime" style="margin:0 auto 18px;">Real Talk</div>
+            <p style="font-family:var(--font-editorial);font-style:italic;font-size:clamp(22px,4.5vw,42px);line-height:1.15;letter-spacing:-0.01em;color:#fff;">
+              I called my mom on a Tuesday afternoon just because I <span style="color:var(--lime);font-family:var(--font-display);font-style:normal;font-weight:800;letter-spacing:-0.03em;">could.</span>
+            </p>
+            <p style="font-family:var(--font-mono);font-size:clamp(8px,1vw,11px);color:var(--text-caption);margin-top:20px;line-height:1.65;">The small wins nobody talks about when they share their "quit my job" story.</p>
+          </div>
+
+          <div class="page-footer" style="color:rgba(255,255,255,0.25);">
+            <span>Offscreen</span>
+            <span>07</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 8: SECTION 4 — the actual advice ===================== -->
+    <div class="page" data-page="8">
+      <div class="page-inner">
+        <div class="article-page">
+          <div class="kicker tangerine">Section 04</div>
+          <h2 class="section-title">the <span class="serif-word">actual</span> advice</h2>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
+            <div class="body-text">
+              <p class="lead">If you're thinking about it:</p>
+            </div>
+
+            <ol class="advice-list">
+              <li>
+                <div>
+                  <strong style="color:var(--text-primary);display:block;margin-bottom:3px;font-family:var(--font-display);font-weight:700;font-size:clamp(10px,1.2vw,13px);letter-spacing:-0.02em;">Save 6 months of expenses first.</strong>
+                  Seriously. The freedom feels very different when you're not panicking about rent. Give yourself a runway so your creativity isn't fueled by anxiety.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong style="color:var(--text-primary);display:block;margin-bottom:3px;font-family:var(--font-display);font-weight:700;font-size:clamp(10px,1.2vw,13px);letter-spacing:-0.02em;">Tell your ego to sit down.</strong>
+                  Nobody cares about your title except you. The sooner you detach your self-worth from your LinkedIn profile, the sooner you can actually figure out what you want.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong style="color:var(--text-primary);display:block;margin-bottom:3px;font-family:var(--font-display);font-weight:700;font-size:clamp(10px,1.2vw,13px);letter-spacing:-0.02em;">Stop asking LinkedIn influencers for permission.</strong>
+                  The people posting "hot takes" about career pivots are performing. You already know what you need to do. Trust that.
+                </div>
+              </li>
+            </ol>
+
+            <div class="accent-block dark" style="margin-top:auto;">
+              <p style="font-family:var(--font-display);font-weight:800;font-size:clamp(16px,2.5vw,26px);line-height:1.1;text-align:center;letter-spacing:-0.03em;">You already <span style="font-family:var(--font-editorial);font-style:italic;font-weight:400;">know.</span></p>
+            </div>
+          </div>
+
+          <div class="page-footer">
+            <span>Real Talk</span>
+            <span>08</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 9: CLOSING — full video sign-off ===================== -->
+    <div class="page" data-page="9">
+      <div class="page-inner">
+        <div class="full-bleed" data-video>
+          <video muted loop playsinline preload="metadata"
+            poster="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb"
+            style="width:100%;height:100%;object-fit:cover;">
+            <source src="https://videos.pexels.com/video-files/3627091/3627091-uhd_2560_1440_30fps.mp4" type="video/mp4">
+          </video>
+          <img class="video-poster" src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Wide landscape vista" style="display:none;width:100%;height:100%;object-fit:cover;" loading="lazy" width="1200" height="800">
+        </div>
+        <div class="full-bleed-content" style="justify-content:flex-end;gap:8px;">
+          <div class="sticker-tag" style="width:fit-content;transform:rotate(-3deg);margin-bottom:4px;">the end.</div>
+          <p style="font-family:var(--font-display);font-weight:800;font-size:clamp(18px,3vw,32px);line-height:1.05;letter-spacing:-0.04em;max-width:65%;text-shadow:0 2px 40px rgba(0,0,0,0.5);text-transform:lowercase;">
+            Stop scrolling.<br>Start <span style="font-family:var(--font-editorial);font-style:italic;font-weight:400;">building.</span>
+          </p>
+          <p style="font-family:var(--font-mono);font-size:clamp(8px,1vw,11px);opacity:0.6;max-width:55%;line-height:1.65;">
+            Jamie Torres writes about work, creativity, and figuring it out. Find more at offscreen.pub
+          </p>
+          <p style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.3;margin-top:6px;">
+            Photography: Unsplash &amp; Pexels Contributors
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 10: BACK COVER ===================== -->
+    <div class="page" data-page="10">
+      <div class="page-inner">
+        <div class="back-cover">
+          <div class="video-bg" data-video>
+            <video muted loop playsinline preload="metadata"
+              poster="https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800&q=80&fm=jpg&crop=entropy&cs=srgb">
+              <source src="https://videos.pexels.com/video-files/3254066/3254066-uhd_2560_1440_25fps.mp4" type="video/mp4">
+            </video>
+            <img class="video-poster" src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800&q=80&fm=jpg&crop=entropy&cs=srgb" alt="People collaborating" style="display:none;" loading="lazy" width="800" height="600">
+          </div>
+
+          <!-- Geometric overlays -->
+          <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;border:3px solid var(--lime);opacity:0.1;transform:rotate(15deg);z-index:2;pointer-events:none;"></div>
+          <div style="position:absolute;bottom:-30px;left:-30px;width:150px;height:150px;border:3px solid var(--violet);opacity:0.08;transform:rotate(-10deg);z-index:2;pointer-events:none;border-radius:50%;"></div>
+
+          <div style="position:relative;z-index:3;">
+            <div class="back-cover-logo">Offscreen</div>
+            <p class="back-cover-tagline">For the ones who quit the meeting, opened the laptop, and chose themselves.</p>
+            <div class="back-cover-socials">
+              <span class="social-pill">@offscreen</span>
+              <span class="social-pill">offscreen.pub</span>
+              <span class="social-pill">#realtalk</span>
+            </div>
+            <p style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.1em;text-transform:uppercase;opacity:0.2;margin-top:30px;">Issue 14 &middot; March 2026 &middot; Printed in pixels</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /spread -->
+</div><!-- /viewer -->
+
+<!-- Bottom Page Indicator -->
+<div class="bottombar" id="bottombar"></div>
+
+<!-- Branding -->
+<a class="branding" href="https://github.com/bluedusk/html-magazine" target="_blank" rel="noopener">Built with html-magazine</a>
+
+<script>
+(function() {
+  'use strict';
+
+  var pages      = [].slice.call(document.querySelectorAll('.page'));
+  var spread     = document.getElementById('spread');
+  var pageNum    = document.getElementById('pageNum');
+  var prevBtn    = document.getElementById('prevBtn');
+  var nextBtn    = document.getElementById('nextBtn');
+  var singleBtn  = document.getElementById('singleBtn');
+  var spreadBtn  = document.getElementById('spreadBtn');
+  var bottombar  = document.getElementById('bottombar');
+  var viewer     = document.getElementById('viewer');
+  var total      = pages.length;
+
+  var current  = 0;
+  var mode     = localStorage.getItem('offscreen-view-mode') || 'single';
+  var turning  = false;
+
+  // ---- Video management ----
+  function getAllVideos() {
+    return [].slice.call(document.querySelectorAll('.page video'));
+  }
+
+  function pauseAllVideos() {
+    getAllVideos().forEach(function(v) {
+      if (!v.paused) {
+        v.pause();
+      }
+    });
+  }
+
+  function playVisibleVideos() {
+    pauseAllVideos();
+
+    var views = getViewList();
+    var viewIdx = currentViewIndex();
+    var visible = views[viewIdx] || [0];
+
+    visible.forEach(function(pageIdx) {
+      var page = pages[pageIdx];
+      if (!page) return;
+      var videos = [].slice.call(page.querySelectorAll('video'));
+      videos.forEach(function(v) {
+        if (v.paused) {
+          var playPromise = v.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(function() {
+              var poster = v.parentElement.querySelector('.video-poster');
+              if (poster) {
+                poster.style.display = 'block';
+                v.style.display = 'none';
+              }
+            });
+          }
+        }
+      });
+    });
+  }
+
+  // ---- Build dots ----
+  function buildDots() {
+    bottombar.innerHTML = '';
+    var views = getViewList();
+    views.forEach(function(_, i) {
+      var dot = document.createElement('button');
+      dot.className = 'dot';
+      dot.setAttribute('aria-label', 'Go to view ' + (i + 1));
+      dot.addEventListener('click', function() { goToView(i); });
+      bottombar.appendChild(dot);
+    });
+  }
+
+  // ---- View helpers ----
+  function getViewList() {
+    if (mode === 'single') return pages.map(function(_, i) { return [i]; });
+    // Spread: cover alone (page 0), then pairs starting from page 1
+    var views = [[0]];
+    for (var i = 1; i < total; i += 2) {
+      var pair = [i];
+      if (i + 1 < total) pair.push(i + 1);
+      views.push(pair);
+    }
+    return views;
+  }
+
+  function currentViewIndex() {
+    var views = getViewList();
+    for (var i = 0; i < views.length; i++) {
+      if (views[i].indexOf(current) !== -1) return i;
+    }
+    return 0;
+  }
+
+  function goToView(viewIdx) {
+    var views = getViewList();
+    if (viewIdx < 0 || viewIdx >= views.length) return;
+    var target = views[viewIdx][0];
+    if (target === current) return;
+    var dir = target > current ? 'fwd' : 'back';
+    turn(target, dir);
+  }
+
+  // ---- Render ----
+  function render() {
+    var views   = getViewList();
+    var viewIdx = currentViewIndex();
+    var visible = views[viewIdx] || [0];
+
+    pages.forEach(function(p) {
+      p.classList.remove('visible', 'single-page', 'left-page', 'right-page');
+    });
+
+    var isSpread = mode === 'spread' && visible.length === 2;
+    spread.classList.toggle('is-spread', isSpread);
+
+    if (isSpread) {
+      pages[visible[0]].classList.add('visible', 'left-page');
+      pages[visible[1]].classList.add('visible', 'right-page');
+    } else {
+      pages[visible[0]].classList.add('visible', 'single-page');
+    }
+
+    // Page number
+    if (isSpread) {
+      pageNum.textContent = (visible[0] + 1) + '\u2013' + (visible[1] + 1) + ' / ' + total;
+    } else {
+      pageNum.textContent = (visible[0] + 1) + ' / ' + total;
+    }
+
+    // Dots
+    var dots = bottombar.querySelectorAll('.dot');
+    for (var i = 0; i < dots.length; i++) {
+      dots[i].classList.toggle('active', i === viewIdx);
+    }
+
+    // Arrow states
+    prevBtn.classList.toggle('disabled', viewIdx === 0);
+    nextBtn.classList.toggle('disabled', viewIdx === views.length - 1);
+
+    playVisibleVideos();
+  }
+
+  // ---- Page turn animation ----
+  function turn(targetPage, direction) {
+    if (turning) return;
+    turning = true;
+
+    spread.classList.add(direction === 'fwd' ? 'turning-fwd' : 'turning-back');
+
+    setTimeout(function() {
+      current = targetPage;
+      render();
+
+      spread.style.transition = 'none';
+      spread.classList.remove('turning-fwd', 'turning-back');
+      spread.classList.add(direction === 'fwd' ? 'entering-fwd' : 'entering-back');
+      spread.offsetHeight; // force reflow
+
+      spread.style.transition = '';
+      spread.classList.remove('entering-fwd', 'entering-back');
+
+      setTimeout(function() {
+        turning = false;
+      }, 300);
+    }, 280);
+  }
+
+  // ---- Navigation ----
+  function next() {
+    var views = getViewList();
+    var vi = currentViewIndex();
+    if (vi < views.length - 1) goToView(vi + 1);
+  }
+  function prev() {
+    var vi = currentViewIndex();
+    if (vi > 0) goToView(vi - 1);
+  }
+
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+
+  // Keyboard
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
+    if (e.key === 'Home') { e.preventDefault(); goToView(0); }
+    if (e.key === 'End') { e.preventDefault(); goToView(getViewList().length - 1); }
+  });
+
+  // Touch / swipe
+  var touchStartX = 0, touchStartY = 0;
+  viewer.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  viewer.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    var dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      dx < 0 ? next() : prev();
+    }
+  }, { passive: true });
+
+  // Click on left/right halves of viewer
+  viewer.addEventListener('click', function(e) {
+    if (e.target.closest('.nav-arrow, .mode-btn, .dot, .branding, a')) return;
+    var rect = viewer.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    if (x < rect.width * 0.25) prev();
+    else if (x > rect.width * 0.75) next();
+  });
+
+  // ---- Mode toggle ----
+  function setMode(m) {
+    mode = m;
+    localStorage.setItem('offscreen-view-mode', m);
+    singleBtn.classList.toggle('active', m === 'single');
+    spreadBtn.classList.toggle('active', m === 'spread');
+    buildDots();
+    render();
+  }
+  singleBtn.addEventListener('click', function() { setMode('single'); });
+  spreadBtn.addEventListener('click', function() { setMode('spread'); });
+
+  // ---- Auto-detect: use spread on wide screens ----
+  function autoMode() {
+    if (window.innerWidth < 900) {
+      if (mode === 'spread') setMode('single');
+      spreadBtn.parentElement.style.display = 'none';
+    } else {
+      spreadBtn.parentElement.style.display = '';
+    }
+  }
+
+  // ---- Restore mode from localStorage ----
+  function initMode() {
+    var saved = localStorage.getItem('offscreen-view-mode');
+    if (saved === 'spread' && window.innerWidth >= 900) {
+      mode = 'spread';
+    } else {
+      mode = 'single';
+    }
+    singleBtn.classList.toggle('active', mode === 'single');
+    spreadBtn.classList.toggle('active', mode === 'spread');
+  }
+
+  // ---- Visibility change: pause videos when tab is hidden ----
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      pauseAllVideos();
+    } else {
+      playVisibleVideos();
+    }
+  });
+
+  // ---- Init ----
+  initMode();
+  autoMode();
+  window.addEventListener('resize', autoMode);
+  buildDots();
+  render();
+})();
+</script>
+</body>
+</html>

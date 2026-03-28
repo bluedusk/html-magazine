@@ -59,9 +59,18 @@ Read the relevant reference file:
 - `references/vibrant-lifestyle.md` — Vogue / GQ
 - `references/creator.md` — Dazed / i-D / The Face
 
-Each file contains two sections:
-- **Editorial Voice** — how the writing should sound at this magazine
-- **Visual Elements** — colors, typography, layout elements, photography direction
+Each file contains:
+- **Editorial Voice** — how the writing should sound
+- **Visual Tone** — the feeling and mood (not specific colors or fonts)
+- **Media Mood** — what kind of imagery to find
+
+### 4b. Pick a Random Sub-Style
+
+Read `references/substyles.md`. Each style has 5 sub-styles. **Randomly pick one** — do not ask the user, do not always pick the first one. This ensures every magazine looks different even when the same style is chosen.
+
+Include the sub-style name and its one-line description in the prompt to ui-ux-pro-max. For example, if the user picked Creator and you randomly selected "lo-fi analog film," include:
+
+> Style: youth culture magazine (like Dazed, i-D, The Face), with a lo-fi analog film feel — grain, muted tones, disposable camera vibes, nostalgic warmth
 
 ### 5. Rewrite Content
 
@@ -80,14 +89,15 @@ Using the editorial voice section from the style reference, rewrite the content 
 
 ### 6. Pass to ui-ux-pro-max
 
-Invoke the `ui-ux-pro-max` skill with a complete visual brief. The brief must include everything ui-ux-pro-max needs to generate the HTML — don't assume it knows what a "magazine" looks like.
+Invoke the `ui-ux-pro-max` skill. The prompt should include:
 
-Construct the brief by combining:
-1. The **Visual Elements** section from the style reference (colors, typography, layout elements, photography direction)
-2. The **rewritten content** with all magazine elements
-3. The **rendering specifications** below
+1. **Style line** — the magazine family + randomly picked sub-style (e.g., "youth culture magazine like Dazed/i-D, with a pastel collage scrapbook feel")
+2. **Editorial voice** — from the style reference (so ui-ux-pro-max understands the tone)
+3. **Media mood** — from the style reference (so it knows what images/videos to find)
+4. **Rewritten content** — all magazine elements (masthead, kicker, headline, deck, byline, sections, pull quotes)
+5. **Rendering requirements** — below
 
-ui-ux-pro-max is responsible for sourcing images and media. Include the **Photography Direction** from the style reference so it knows what mood and style of imagery to find.
+Do not prescribe colors, fonts, or layout details. Let ui-ux-pro-max make all visual decisions based on the style line and its own design system.
 
 **Rendering specifications to include in the brief:**
 

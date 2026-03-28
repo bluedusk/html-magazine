@@ -1,0 +1,6 @@
+.superpowers/
+html-magazine-workspace/
+*.html
+__pycache__/
+*.pyc
+.DS_Store

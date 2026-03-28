@@ -1,0 +1,68 @@
+{
+  "skill_name": "html-magazine",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Turn this into a magazine (Editorial style, Moderate rewrite): [AI Writing Revolution article]",
+      "expected_output": "Paginated HTML magazine with editorial style, rewritten content, images, view toggle",
+      "files": [],
+      "assertions": [
+        {"name": "has-paginated-pages", "text": "HTML contains data-page attributes for multiple pages"},
+        {"name": "has-page-flip-nav", "text": "Has arrow button navigation and keyboard event listeners"},
+        {"name": "has-view-toggle", "text": "Has single/spread view mode toggle button"},
+        {"name": "has-cover-page", "text": "Has a distinct cover page with class cover or equivalent"},
+        {"name": "has-drop-cap", "text": "Uses ::first-letter or .drop-cap CSS styling"},
+        {"name": "has-pull-quote", "text": "Contains a pull-quote element with distinct styling"},
+        {"name": "has-page-numbers", "text": "Contains page number elements"},
+        {"name": "has-rewritten-headline", "text": "Headline differs from original title 'The AI Writing Revolution'"},
+        {"name": "self-contained", "text": "No external <link> stylesheet or <script src=http...> tags (images OK)"},
+        {"name": "has-gutter-shadow", "text": "CSS contains box-shadow: inset for binding simulation"},
+        {"name": "editorial-serif-fonts", "text": "Uses Georgia or serif font stack for body text"},
+        {"name": "editorial-dark-cover", "text": "Cover has dark background (gradient or dark hex color)"},
+        {"name": "editorial-accent-color", "text": "Uses red accent color close to #c0392b"}
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Make this into a magazine page (Vibrant Lifestyle style, Full rewrite): [Kyoto travel essay]",
+      "expected_output": "Paginated HTML magazine with Vogue/GQ style, fully rewritten, sourced images",
+      "files": [],
+      "assertions": [
+        {"name": "has-paginated-pages", "text": "HTML contains data-page attributes for multiple pages"},
+        {"name": "has-page-flip-nav", "text": "Has arrow button navigation and keyboard event listeners"},
+        {"name": "has-view-toggle", "text": "Has single/spread view mode toggle button"},
+        {"name": "has-cover-page", "text": "Has a distinct cover page"},
+        {"name": "has-drop-cap", "text": "Uses ::first-letter or .drop-cap CSS styling"},
+        {"name": "has-pull-quote", "text": "Contains a pull-quote element with distinct styling"},
+        {"name": "has-page-numbers", "text": "Contains page number elements"},
+        {"name": "has-rewritten-headline", "text": "Headline differs from original title 'Autumn in Kyoto'"},
+        {"name": "self-contained", "text": "No external <link> stylesheet or <script src=http...> tags (images OK)"},
+        {"name": "has-gutter-shadow", "text": "CSS contains box-shadow: inset for binding simulation"},
+        {"name": "lifestyle-gold-accent", "text": "Uses gold accent color close to #c9a96e"},
+        {"name": "lifestyle-didot-font", "text": "References Didot or Bodoni font for headlines"},
+        {"name": "has-sourced-images", "text": "Contains img tags with src URLs from Unsplash or similar"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Turn this markdown into a magazine (Tech Minimal style, Light rewrite): [WebAssembly article]",
+      "expected_output": "Paginated HTML magazine with Wired style, data callouts, sourced images",
+      "files": [],
+      "assertions": [
+        {"name": "has-paginated-pages", "text": "HTML contains data-page attributes for multiple pages"},
+        {"name": "has-page-flip-nav", "text": "Has arrow button navigation and keyboard event listeners"},
+        {"name": "has-view-toggle", "text": "Has single/spread view mode toggle button"},
+        {"name": "has-cover-page", "text": "Has a distinct cover page"},
+        {"name": "has-pull-quote", "text": "Contains a pull-quote element with distinct styling"},
+        {"name": "has-page-numbers", "text": "Contains page number elements"},
+        {"name": "self-contained", "text": "No external <link> stylesheet or <script src=http...> tags (images OK)"},
+        {"name": "has-gutter-shadow", "text": "CSS contains box-shadow: inset for binding simulation"},
+        {"name": "tech-gradient-rule", "text": "Has gradient horizontal rule (linear-gradient with accent colors)"},
+        {"name": "tech-monospace", "text": "Uses Courier New or monospace for data/stats elements"},
+        {"name": "tech-data-callout", "text": "Has data callout boxes with stats displayed prominently"},
+        {"name": "tech-accent-color", "text": "Uses accent color close to #ff0055"},
+        {"name": "has-sourced-images", "text": "Contains img tags with src URLs from Unsplash or similar"}
+      ]
+    }
+  ]
+}

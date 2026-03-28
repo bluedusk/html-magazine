@@ -125,7 +125,8 @@ PAGES TO GENERATE:
 IMAGES & MEDIA:
 - You (ui-ux-pro-max) are responsible for sourcing images and videos that match the content
 - Search for and embed relevant images and videos that complement the article
-- Follow the photography/media direction from the style reference included above
+- Use background video loops (muted, autoplay, looping) on key pages — cover, section openers, or visual breaks. Pause/play videos based on page visibility.
+- Follow the media mood from the style reference included above
 - If you can't find suitable media, use CSS-only visuals (gradients, geometric patterns, color blocks)
 
 BRANDING:

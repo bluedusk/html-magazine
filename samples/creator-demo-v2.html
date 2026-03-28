@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OFFSCREEN — i quit my office job and honestly? best decision ever.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com">
+<link rel="preconnect" href="https://images.pexels.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS — Youth Culture / Creator Energy v2
+   ============================================================ */
+:root {
+  --bg-surface: linear-gradient(135deg, #FFF5E1 0%, #FFE0F0 30%, #E0E7FF 60%, #D0FFF5 100%);
+  --paper: #FFFFFF;
+  --paper-cream: #FFFBF5;
+  --text-primary: #1A1A2E;
+  --text-secondary: #3D3D5C;
+  --text-caption: #8888AA;
+  --text-on-dark: #FFFFFF;
+
+  /* One bold pop color used everywhere */
+  --pop: #FF5733;
+  --pop-light: #FFF0EC;
+  --pop-bright: #FF3D00;
+  --pop-glow: rgba(255, 87, 51, 0.15);
+
+  /* Accent palette */
+  --accent-yellow: #FFD23F;
+  --accent-lavender: #C4B5FD;
+  --accent-mint: #6EE7B7;
+  --accent-pink: #F9A8D4;
+  --accent-blue: #7DD3FC;
+  --accent-peach: #FBBF7D;
+
+  /* Typography */
+  --font-display: 'Outfit', -apple-system, sans-serif;
+  --font-body: 'DM Sans', -apple-system, Helvetica, Arial, sans-serif;
+  --font-ui: 'Space Grotesk', -apple-system, Helvetica, Arial, sans-serif;
+
+  /* Spacing */
+  --page-pad: clamp(24px, 3.5vw, 44px);
+  --page-ratio: 210 / 297;
+
+  /* Radii — rounded corners on everything */
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-lg: 24px;
+  --radius-pill: 100px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg-surface);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100dvh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ============================================================
+   VIEWER AREA
+   ============================================================ */
+.viewer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 16px 56px;
+}
+
+/* ============================================================
+   SPREAD CONTAINER
+   ============================================================ */
+.spread {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  height: 92vh;
+  max-height: 92vh;
+  transition: opacity 0.32s ease, transform 0.32s ease;
+  position: relative;
+}
+.spread.turning-fwd  { opacity: 0; transform: translateX(-14px) scale(0.98); }
+.spread.turning-back { opacity: 0; transform: translateX(14px) scale(0.98); }
+.spread.entering-fwd  { opacity: 0; transform: translateX(14px) scale(0.98); }
+.spread.entering-back { opacity: 0; transform: translateX(-14px) scale(0.98); }
+
+.spread.is-spread::after {
+  content: '';
+  position: absolute;
+  top: 2%;
+  bottom: 2%;
+  left: 50%;
+  width: 40px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ============================================================
+   PAGE
+   ============================================================ */
+.page {
+  aspect-ratio: var(--page-ratio);
+  height: 92vh;
+  max-height: 92vh;
+  background: var(--paper);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: none;
+  flex-direction: column;
+  border-radius: 4px;
+}
+.page.single-page {
+  box-shadow:
+    0 4px 16px rgba(0,0,0,0.08),
+    0 12px 40px rgba(0,0,0,0.1),
+    0 24px 80px rgba(0,0,0,0.06);
+}
+.page.left-page {
+  box-shadow:
+    -4px 2px 16px rgba(0,0,0,0.08),
+    -10px 4px 40px rgba(0,0,0,0.07),
+    inset -20px 0 30px -20px rgba(0,0,0,0.05);
+  border-right: 1px solid rgba(0,0,0,0.04);
+  border-radius: 4px 0 0 4px;
+}
+.page.right-page {
+  box-shadow:
+    4px 2px 16px rgba(0,0,0,0.08),
+    10px 4px 40px rgba(0,0,0,0.07),
+    inset 20px 0 30px -20px rgba(0,0,0,0.05);
+  border-left: 1px solid rgba(0,0,0,0.04);
+  border-radius: 0 4px 4px 0;
+}
+.page.visible { display: flex; }
+
+.page-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Running footer */
+.page-footer {
+  position: absolute;
+  bottom: 14px;
+  left: var(--page-pad);
+  right: var(--page-pad);
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-ui);
+  font-size: 7.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-caption);
+  z-index: 3;
+}
+
+/* ============================================================
+   NAV ARROWS
+   ============================================================ */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+  font-size: 18px;
+  font-family: var(--font-ui);
+  font-weight: 400;
+}
+.nav-arrow:hover { background: rgba(255,255,255,0.95); box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+.nav-arrow:active { transform: translateY(-50%) scale(0.95); }
+.nav-arrow.disabled { opacity: 0.2; pointer-events: none; }
+.nav-prev { left: 8px; }
+.nav-next { right: 8px; }
+
+/* ============================================================
+   BOTTOM BAR (page indicator)
+   ============================================================ */
+.bottombar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.12);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+.dot.active { background: var(--pop); transform: scale(1.3); border-radius: var(--radius-pill); width: 20px; }
+.dot:hover { background: rgba(0,0,0,0.25); }
+
+/* ============================================================
+   VIEW MODE TOGGLE
+   ============================================================ */
+.mode-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 200;
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.mode-btn {
+  background: none;
+  border: none;
+  color: var(--text-caption);
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.mode-btn:hover { color: var(--text-primary); }
+.mode-btn.active { background: var(--pop); color: #fff; }
+.mode-btn svg { width: 16px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+/* Page number overlay */
+.page-num {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-caption);
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(0,0,0,0.05);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   BRANDING WATERMARK
+   ============================================================ */
+.branding {
+  position: fixed;
+  bottom: 10px;
+  right: 14px;
+  z-index: 200;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  opacity: 0.35;
+  color: var(--text-caption);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+.branding:hover { opacity: 0.7; }
+
+/* ============================================================
+   VIDEO BACKGROUNDS
+   ============================================================ */
+.video-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+.video-bg video,
+.video-bg img.video-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* ============================================================
+   COVER PAGE
+   ============================================================ */
+.cover {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.cover .video-bg::after {
+  background: linear-gradient(160deg,
+    rgba(255, 87, 51, 0.75) 0%,
+    rgba(255, 87, 51, 0.45) 30%,
+    rgba(255, 210, 63, 0.35) 60%,
+    rgba(255, 138, 101, 0.5) 100%);
+}
+.cover-noise {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 3;
+}
+.cover-content {
+  position: relative;
+  z-index: 5;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--page-pad);
+  color: #fff;
+}
+.cover-masthead {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.cover-date {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 8px;
+  opacity: 0.8;
+}
+.cover-kicker {
+  display: inline-block;
+  background: #fff;
+  color: var(--pop);
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  margin-top: auto;
+  margin-bottom: 12px;
+  width: fit-content;
+}
+.cover-headline {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 4.5vw, 42px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  max-width: 65%;
+  text-shadow: 0 2px 30px rgba(0,0,0,0.15);
+  transform: rotate(-1.5deg);
+}
+.cover-deck {
+  font-family: var(--font-body);
+  font-size: clamp(10px, 1.4vw, 14px);
+  font-weight: 400;
+  line-height: 1.55;
+  max-width: 55%;
+  margin-top: 14px;
+  opacity: 0.9;
+}
+.cover-byline {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 14px;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+.cover-sticker {
+  position: absolute;
+  top: 15%;
+  right: 8%;
+  width: clamp(60px, 10vw, 90px);
+  height: clamp(60px, 10vw, 90px);
+  background: var(--accent-yellow);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(12deg);
+  z-index: 6;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.cover-sticker span {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(8px, 1.4vw, 12px);
+  text-align: center;
+  line-height: 1.2;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   KICKER PILL
+   ============================================================ */
+.kicker {
+  display: inline-block;
+  background: var(--pop);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: clamp(7px, 0.9vw, 9px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  width: fit-content;
+  margin-bottom: 12px;
+}
+.kicker.alt { background: var(--accent-lavender); color: var(--text-primary); }
+.kicker.mint { background: var(--accent-mint); color: var(--text-primary); }
+.kicker.yellow { background: var(--accent-yellow); color: var(--text-primary); }
+.kicker.pink { background: var(--accent-pink); color: var(--text-primary); }
+
+/* ============================================================
+   SECTION TITLE
+   ============================================================ */
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(24px, 4vw, 40px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+.section-title.tilted { transform: rotate(-2deg); transform-origin: left bottom; }
+.section-title .pop-word { color: var(--pop); }
+
+/* ============================================================
+   BODY TEXT
+   ============================================================ */
+.body-text {
+  font-family: var(--font-body);
+  font-size: clamp(10.5px, 1.3vw, 13.5px);
+  line-height: 1.72;
+  color: var(--text-secondary);
+}
+.body-text p { margin-bottom: 12px; }
+.body-text .lead {
+  font-size: clamp(14px, 1.8vw, 18px);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+.body-text .parenthetical {
+  font-style: italic;
+  color: var(--text-caption);
+}
+
+/* ============================================================
+   PULL QUOTE
+   ============================================================ */
+.pull-quote {
+  background: var(--pop-light);
+  border-radius: var(--radius);
+  padding: clamp(14px, 2vw, 24px);
+  margin: 16px 0;
+  position: relative;
+}
+.pull-quote::before {
+  content: '\201C';
+  font-family: var(--font-display);
+  font-size: clamp(40px, 6vw, 60px);
+  font-weight: 900;
+  color: var(--pop);
+  position: absolute;
+  top: -4px;
+  left: 12px;
+  line-height: 1;
+  opacity: 0.4;
+}
+.pull-quote p {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(14px, 2vw, 20px);
+  line-height: 1.35;
+  color: var(--text-primary);
+  padding-left: 4px;
+}
+
+/* ============================================================
+   IMAGES
+   ============================================================ */
+.img-block {
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+}
+.img-block img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.img-cutout {
+  background: var(--accent-lavender);
+  border-radius: var(--radius-lg);
+  padding: 10px;
+  transform: rotate(1.5deg);
+}
+.img-cutout.yellow { background: var(--accent-yellow); }
+.img-cutout.mint { background: var(--accent-mint); }
+.img-cutout.pink { background: var(--accent-pink); }
+.img-cutout.peach { background: var(--accent-peach); }
+.img-cutout .img-block { border-radius: var(--radius); }
+
+/* ============================================================
+   ARTICLE PAGE LAYOUTS
+   ============================================================ */
+.article-page {
+  padding: var(--page-pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0;
+}
+
+/* Full-bleed */
+.full-bleed {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.full-bleed img,
+.full-bleed video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.full-bleed::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(26,26,46,0.7) 0%, rgba(26,26,46,0.2) 40%, transparent 65%);
+}
+.full-bleed-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--page-pad);
+  color: #fff;
+}
+
+/* Two-column layout */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(12px, 2vw, 24px);
+  flex: 1;
+}
+.two-col.uneven { grid-template-columns: 1.3fr 1fr; }
+.two-col.uneven-r { grid-template-columns: 1fr 1.3fr; }
+
+/* Colored accent block */
+.accent-block {
+  background: var(--pop);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: clamp(14px, 2vw, 24px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.accent-block.yellow { background: var(--accent-yellow); color: var(--text-primary); }
+.accent-block.lavender { background: var(--accent-lavender); color: var(--text-primary); }
+.accent-block.mint { background: var(--accent-mint); color: var(--text-primary); }
+
+/* Number list styling */
+.advice-list {
+  list-style: none;
+  counter-reset: advice;
+}
+.advice-list li {
+  counter-increment: advice;
+  padding: clamp(8px, 1.2vw, 14px) 0;
+  border-bottom: 2px solid rgba(0,0,0,0.06);
+  font-family: var(--font-body);
+  font-size: clamp(10px, 1.2vw, 13px);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.advice-list li::before {
+  content: counter(advice, decimal-leading-zero);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(20px, 3vw, 32px);
+  color: var(--pop);
+  line-height: 1;
+  flex-shrink: 0;
+  min-width: 36px;
+}
+
+/* ============================================================
+   BACK COVER
+   ============================================================ */
+.back-cover {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-pad);
+  text-align: center;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.back-cover .video-bg::after {
+  background: rgba(26, 26, 46, 0.82);
+}
+.back-cover-logo {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 6vw, 56px);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 2;
+}
+.back-cover-tagline {
+  font-family: var(--font-body);
+  font-size: clamp(11px, 1.4vw, 15px);
+  opacity: 0.5;
+  max-width: 300px;
+  line-height: 1.6;
+  position: relative;
+  z-index: 2;
+}
+.back-cover-socials {
+  margin-top: 24px;
+  display: flex;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+.social-pill {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.social-pill:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+/* ============================================================
+   DECORATIVE ELEMENTS
+   ============================================================ */
+.deco-circle {
+  position: absolute;
+  border-radius: 50%;
+  z-index: 1;
+  pointer-events: none;
+}
+.deco-squiggle {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  color: var(--pop);
+  opacity: 0.15;
+}
+.sticker-tag {
+  display: inline-block;
+  background: var(--accent-yellow);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(8px, 1vw, 11px);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  transform: rotate(-4deg);
+}
+
+/* ============================================================
+   SECTION OPENER (video bg)
+   ============================================================ */
+.section-opener {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.section-opener .video-bg::after {
+  background: linear-gradient(to top,
+    rgba(26, 26, 46, 0.75) 0%,
+    rgba(26, 26, 46, 0.3) 35%,
+    rgba(26, 26, 46, 0.1) 60%,
+    transparent 100%);
+}
+.section-opener-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--page-pad);
+  color: #fff;
+}
+
+/* ============================================================
+   VISUAL BREAK PAGE
+   ============================================================ */
+.visual-break {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.visual-break .video-bg::after {
+  background: linear-gradient(135deg,
+    rgba(255, 87, 51, 0.5) 0%,
+    rgba(196, 181, 253, 0.4) 50%,
+    rgba(110, 231, 183, 0.4) 100%);
+}
+.visual-break-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-pad);
+  text-align: center;
+  color: #fff;
+}
+
+/* ============================================================
+   PRINT SUPPORT
+   ============================================================ */
+@media print {
+  body {
+    background: none !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  .viewer { padding: 0 !important; overflow: visible !important; }
+  .spread { height: auto !important; max-height: none !important; }
+  .page {
+    display: flex !important;
+    page-break-after: always;
+    page-break-inside: avoid;
+    height: 100vh !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+  .page.visible, .page:not(.visible) { display: flex !important; }
+  .nav-arrow, .bottombar, .mode-toggle, .page-num, .branding { display: none !important; }
+  .spread::after { display: none !important; }
+  video { display: none !important; }
+  .video-bg img.video-poster { display: block !important; }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .viewer { padding: 8px 12px; }
+  .cover-headline { max-width: 80%; font-size: clamp(18px, 5vw, 28px); }
+  .cover-deck { max-width: 75%; }
+  .two-col, .two-col.uneven, .two-col.uneven-r {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .nav-arrow { width: 36px; height: 36px; font-size: 14px; }
+  .mode-toggle { display: none; }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .spread { transition: none; }
+  .spread.turning-fwd,
+  .spread.turning-back,
+  .spread.entering-fwd,
+  .spread.entering-back { transform: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- View Mode Toggle -->
+<div class="mode-toggle">
+  <button class="mode-btn active" id="singleBtn" aria-label="Single page view">
+    <svg viewBox="0 0 16 14"><rect x="3" y="1" width="10" height="12" rx="1"/></svg>
+    Single
+  </button>
+  <button class="mode-btn" id="spreadBtn" aria-label="Two-page spread view">
+    <svg viewBox="0 0 16 14"><rect x="1" y="1" width="6" height="12" rx="1"/><rect x="9" y="1" width="6" height="12" rx="1"/></svg>
+    Spread
+  </button>
+</div>
+
+<!-- Page Number -->
+<div class="page-num" id="pageNum">1 / 10</div>
+
+<!-- Main Viewer -->
+<div class="viewer" id="viewer">
+
+  <!-- Nav Arrows -->
+  <button class="nav-arrow nav-prev" id="prevBtn" aria-label="Previous page">&larr;</button>
+  <button class="nav-arrow nav-next" id="nextBtn" aria-label="Next page">&rarr;</button>
+
+  <!-- Spread Container -->
+  <div class="spread" id="spread">
+
+    <!-- ===================== PAGE 1: COVER (video bg) ===================== -->
+    <div class="page" data-page="1">
+      <div class="page-inner">
+        <div class="cover">
+          <!-- Video background -->
+          <div class="video-bg" data-video>
+            <video muted loop playsinline preload="metadata"
+              poster="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80&fm=jpg&crop=entropy&cs=srgb">
+              <source src="https://videos.pexels.com/video-files/3254066/3254066-uhd_2560_1440_25fps.mp4" type="video/mp4">
+            </video>
+            <img class="video-poster" src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Young people collaborating" style="display:none;" loading="eager" width="800" height="600">
+          </div>
+          <div class="cover-noise"></div>
+          <div class="cover-sticker">
+            <span>Real<br>Talk</span>
+          </div>
+          <div class="cover-content">
+            <div class="cover-masthead">Offscreen</div>
+            <div class="cover-date">March 2026</div>
+            <div class="cover-kicker">Real Talk</div>
+            <h1 class="cover-headline">i quit my office job and honestly? best decision ever.</h1>
+            <p class="cover-deck">Remote work isn't about the laptop-on-the-beach fantasy. It's about finally having time to think.</p>
+            <div class="cover-byline">words by Jamie Torres</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 2: OPENING SPREAD — section opener (video bg) ===================== -->
+    <div class="page" data-page="2">
+      <div class="page-inner">
+        <div class="section-opener">
+          <div class="video-bg" data-video>
+            <video muted loop playsinline preload="metadata"
+              poster="https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb">
+              <source src="https://videos.pexels.com/video-files/1851768/1851768-hd_1920_1080_24fps.mp4" type="video/mp4">
+            </video>
+            <img class="video-poster" src="https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Minimal workspace overhead" style="display:none;" loading="lazy" width="1200" height="800">
+          </div>
+          <div class="section-opener-content">
+            <div class="kicker" style="background:#fff;color:var(--pop);">Real Talk</div>
+            <h2 style="font-family:var(--font-display);font-size:clamp(20px,3.5vw,36px);font-weight:800;line-height:1.08;letter-spacing:-0.03em;max-width:85%;text-shadow:0 2px 30px rgba(0,0,0,0.4);">i quit my office job and honestly? best decision ever.</h2>
+            <p style="font-family:var(--font-body);font-size:clamp(10px,1.3vw,13px);margin-top:10px;opacity:0.8;max-width:70%;line-height:1.6;">Remote work isn't about the laptop-on-the-beach fantasy. It's about finally having time to think.</p>
+            <p style="font-family:var(--font-ui);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;margin-top:12px;opacity:0.55;">Words by Jamie Torres &middot; March 2026</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 3: SECTION 1 — the breaking point ===================== -->
+    <div class="page" data-page="3">
+      <div class="page-inner">
+        <div class="article-page">
+          <div class="kicker">Section 01</div>
+          <h2 class="section-title tilted">the <span class="pop-word">breaking</span> point</h2>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:14px;">
+            <div class="body-text">
+              <p class="lead">So here's the thing.</p>
+              <p>I was sitting in a meeting about a meeting about another meeting and I just... left. Not dramatically. I didn't flip a table. I just opened my laptop, wrote a two-week notice, and felt my shoulders drop for the first time in months.</p>
+              <p class="parenthetical">(I know. Very main character of me.)</p>
+            </div>
+
+            <div class="img-cutout yellow" style="flex:0 0 auto;max-height:35%;">
+              <div class="img-block" style="height:100%;">
+                <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=600&q=80&fm=jpg&crop=entropy&cs=srgb" alt="People in a corporate meeting room" loading="lazy" width="600" height="400" style="border-radius:16px;">
+              </div>
+            </div>
+
+            <div class="body-text" style="margin-top:auto;">
+              <p>The corporate world has this trick where it makes you believe your identity is your job title. Senior Associate blah blah blah. Cool. But when someone asks you what you actually DO all day and you can't answer without using the word "synergy," that's your sign.</p>
+            </div>
+          </div>
+
+          <div class="page-footer">
+            <span>Offscreen</span>
+            <span>03</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 4: SECTION 2 — the reality check ===================== -->
+    <div class="page" data-page="4">
+      <div class="page-inner">
+        <div class="article-page">
+          <div class="kicker alt">Section 02</div>
+          <h2 class="section-title">the reality <span class="pop-word">check</span></h2>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
+            <div class="body-text">
+              <p class="lead">Let me be honest: the first month sucked.</p>
+              <p>No structure. No one pinging me. No reason to put on pants. You think you want freedom until you have it and you're eating cereal at 2pm watching your third YouTube video about productivity systems you'll never use.</p>
+            </div>
+
+            <div class="pull-quote">
+              <p>You think you want freedom until you have it and you're eating cereal at 2pm.</p>
+            </div>
+
+            <div class="body-text">
+              <p>But then something shifted. I started building things. Not decks. Not reports. Actual things. A newsletter. A side project. A morning routine that didn't involve a commute.</p>
+            </div>
+          </div>
+
+          <div class="page-footer">
+            <span>Real Talk</span>
+            <span>04</span>
+          </div>
+        </div>
+
+        <!-- Decorative circle -->
+        <div class="deco-circle" style="width:120px;height:120px;background:var(--accent-lavender);opacity:0.12;bottom:-30px;right:-30px;"></div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 5: VISUAL BREAK — video loop page ===================== -->
+    <div class="page" data-page="5">
+      <div class="page-inner">
+        <div class="visual-break">
+          <div class="video-bg" data-video>
+            <video muted loop playsinline preload="metadata"
+              poster="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&q=80&fm=jpg&crop=entropy&cs=srgb">
+              <source src="https://videos.pexels.com/video-files/6897966/6897966-uhd_2732_1440_25fps.mp4" type="video/mp4">
+            </video>
+            <img class="video-poster" src="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Person writing in a notebook" style="display:none;" loading="lazy" width="800" height="600">
+          </div>
+          <div class="visual-break-content">
+            <div class="sticker-tag" style="background:var(--pop);color:#fff;font-size:clamp(9px,1.2vw,13px);transform:rotate(-3deg);margin-bottom:20px;">Mood shift</div>
+            <p style="font-family:var(--font-display);font-weight:800;font-size:clamp(20px,4vw,36px);line-height:1.1;letter-spacing:-0.02em;max-width:80%;text-shadow:0 2px 30px rgba(0,0,0,0.4);">
+              Building things that actually <span style="color:var(--accent-yellow);">matter</span> to you hits different.
+            </p>
+            <p style="font-family:var(--font-body);font-size:clamp(9px,1.1vw,12px);opacity:0.6;margin-top:16px;max-width:65%;line-height:1.6;">
+              Not decks. Not reports. Actual things.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 6: SECTION 3 — what nobody tells you ===================== -->
+    <div class="page" data-page="6">
+      <div class="page-inner">
+        <div class="article-page">
+          <div class="kicker mint">Section 03</div>
+          <h2 class="section-title tilted">what <span class="pop-word">nobody</span> tells you</h2>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
+            <div class="body-text">
+              <p class="lead">The loneliness is real.</p>
+              <p>The self-doubt is real. The "am I wasting my life" 3am spiral is very, very real.</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="img-cutout pink" style="transform:rotate(-1deg);">
+                <div class="img-block">
+                  <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Person reading a book in soft light" loading="lazy" width="400" height="300" style="border-radius:14px;aspect-ratio:4/3;object-fit:cover;">
+                </div>
+              </div>
+              <div class="img-cutout" style="transform:rotate(2deg);">
+                <div class="img-block">
+                  <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Person cooking in a kitchen" loading="lazy" width="400" height="300" style="border-radius:14px;aspect-ratio:4/3;object-fit:cover;">
+                </div>
+              </div>
+            </div>
+
+            <div class="body-text">
+              <p>But also? I read 12 books last month. I learned to cook something that wasn't pasta. I called my mom on a Tuesday afternoon just because I could.</p>
+            </div>
+
+            <div class="pull-quote" style="margin-top:auto;">
+              <p>The ROI on that doesn't fit in a spreadsheet.</p>
+            </div>
+          </div>
+
+          <div class="page-footer">
+            <span>Real Talk</span>
+            <span>06</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 7: BIG QUOTE — sticker scatter page ===================== -->
+    <div class="page" data-page="7">
+      <div class="page-inner">
+        <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--page-pad);text-align:center;position:relative;background:var(--paper-cream);">
+
+          <!-- Big decorative background circle -->
+          <div class="deco-circle" style="width:70%;aspect-ratio:1;background:var(--pop-light);top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+
+          <!-- Small deco circles -->
+          <div class="deco-circle" style="width:40px;height:40px;background:var(--accent-yellow);opacity:0.3;top:10%;left:8%;"></div>
+          <div class="deco-circle" style="width:25px;height:25px;background:var(--accent-mint);opacity:0.25;top:25%;right:15%;"></div>
+          <div class="deco-circle" style="width:55px;height:55px;background:var(--accent-pink);opacity:0.15;bottom:20%;left:12%;"></div>
+
+          <div style="position:relative;z-index:2;max-width:80%;">
+            <div class="kicker" style="margin:0 auto 20px;">Real Talk</div>
+            <p style="font-family:var(--font-display);font-weight:800;font-size:clamp(22px,4vw,38px);line-height:1.15;letter-spacing:-0.03em;color:var(--text-primary);">
+              I called my mom on a Tuesday afternoon just because I <span style="color:var(--pop);">could.</span>
+            </p>
+            <p style="font-family:var(--font-body);font-size:clamp(10px,1.2vw,13px);color:var(--text-caption);margin-top:20px;line-height:1.6;">The small wins nobody talks about when they share their "quit my job" story.</p>
+          </div>
+
+          <!-- Scattered sticker tags -->
+          <div class="sticker-tag" style="position:absolute;top:12%;left:10%;transform:rotate(-8deg);">12 books</div>
+          <div class="sticker-tag" style="position:absolute;top:18%;right:12%;transform:rotate(5deg);background:var(--accent-mint);">real food</div>
+          <div class="sticker-tag" style="position:absolute;bottom:18%;left:15%;transform:rotate(3deg);background:var(--accent-pink);">no commute</div>
+          <div class="sticker-tag" style="position:absolute;bottom:14%;right:10%;transform:rotate(-6deg);background:var(--accent-blue);">freedom</div>
+
+          <div class="page-footer">
+            <span>Offscreen</span>
+            <span>07</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 8: SECTION 4 — the actual advice ===================== -->
+    <div class="page" data-page="8">
+      <div class="page-inner">
+        <div class="article-page">
+          <div class="kicker yellow">Section 04</div>
+          <h2 class="section-title">the actual <span class="pop-word">advice</span></h2>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:14px;">
+            <div class="body-text">
+              <p class="lead">If you're thinking about it:</p>
+            </div>
+
+            <ol class="advice-list">
+              <li>
+                <div>
+                  <strong style="color:var(--text-primary);display:block;margin-bottom:4px;">Save 6 months of expenses first.</strong>
+                  Seriously. The freedom feels very different when you're not panicking about rent. Give yourself a runway so your creativity isn't fueled by anxiety.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong style="color:var(--text-primary);display:block;margin-bottom:4px;">Tell your ego to sit down.</strong>
+                  Nobody cares about your title except you. The sooner you detach your self-worth from your LinkedIn profile, the sooner you can actually figure out what you want.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong style="color:var(--text-primary);display:block;margin-bottom:4px;">Stop asking LinkedIn influencers for permission.</strong>
+                  The people posting "hot takes" about career pivots are performing. You already know what you need to do. Trust that.
+                </div>
+              </li>
+            </ol>
+
+            <div class="accent-block" style="border-radius:var(--radius);margin-top:auto;">
+              <p style="font-family:var(--font-display);font-weight:800;font-size:clamp(16px,2.5vw,24px);line-height:1.2;text-align:center;">You already know.</p>
+            </div>
+          </div>
+
+          <div class="page-footer">
+            <span>Real Talk</span>
+            <span>08</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 9: CLOSING — full video + sign-off ===================== -->
+    <div class="page" data-page="9">
+      <div class="page-inner">
+        <div class="full-bleed" data-video>
+          <video muted loop playsinline preload="metadata"
+            poster="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb"
+            style="width:100%;height:100%;object-fit:cover;">
+            <source src="https://videos.pexels.com/video-files/3627091/3627091-uhd_2560_1440_30fps.mp4" type="video/mp4">
+          </video>
+          <img class="video-poster" src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Wide landscape vista" style="display:none;width:100%;height:100%;object-fit:cover;" loading="lazy" width="1200" height="800">
+        </div>
+        <div class="full-bleed-content" style="justify-content:flex-end;gap:10px;">
+          <div class="sticker-tag" style="background:var(--pop);color:#fff;font-size:clamp(8px,1vw,11px);transform:rotate(-3deg);width:fit-content;">The end.</div>
+          <p style="font-family:var(--font-display);font-weight:800;font-size:clamp(18px,3vw,32px);line-height:1.1;letter-spacing:-0.02em;max-width:70%;text-shadow:0 2px 30px rgba(0,0,0,0.4);">
+            Stop scrolling.<br>Start building.
+          </p>
+          <p style="font-family:var(--font-body);font-size:clamp(10px,1.2vw,13px);opacity:0.7;max-width:60%;line-height:1.6;">
+            Jamie Torres writes about work, creativity, and figuring it out. Find more at offscreen.pub
+          </p>
+          <p style="font-family:var(--font-ui);font-size:8px;letter-spacing:0.15em;text-transform:uppercase;opacity:0.4;margin-top:8px;">
+            Photography: Unsplash &amp; Pexels Contributors
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 10: BACK COVER (video bg) ===================== -->
+    <div class="page" data-page="10">
+      <div class="page-inner">
+        <div class="back-cover">
+          <div class="video-bg" data-video>
+            <video muted loop playsinline preload="metadata"
+              poster="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80&fm=jpg&crop=entropy&cs=srgb">
+              <source src="https://videos.pexels.com/video-files/3254066/3254066-uhd_2560_1440_25fps.mp4" type="video/mp4">
+            </video>
+            <img class="video-poster" src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80&fm=jpg&crop=entropy&cs=srgb" alt="People collaborating" style="display:none;" loading="lazy" width="800" height="600">
+          </div>
+
+          <div class="deco-circle" style="width:300px;height:300px;background:var(--pop);opacity:0.08;top:-80px;right:-80px;z-index:2;"></div>
+          <div class="deco-circle" style="width:200px;height:200px;background:var(--accent-lavender);opacity:0.1;bottom:-50px;left:-50px;z-index:2;"></div>
+
+          <div style="position:relative;z-index:3;">
+            <div class="back-cover-logo">Offscreen</div>
+            <p class="back-cover-tagline">For the ones who quit the meeting, opened the laptop, and chose themselves.</p>
+            <div class="back-cover-socials">
+              <span class="social-pill">@offscreen</span>
+              <span class="social-pill">offscreen.pub</span>
+              <span class="social-pill">#realtalk</span>
+            </div>
+            <p style="font-family:var(--font-ui);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;opacity:0.25;margin-top:30px;">Issue 14 &middot; March 2026 &middot; Printed in pixels</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /spread -->
+</div><!-- /viewer -->
+
+<!-- Bottom Page Indicator -->
+<div class="bottombar" id="bottombar"></div>
+
+<!-- Branding -->
+<a class="branding" href="https://github.com/bluedusk/html-magazine" target="_blank" rel="noopener">Built with html-magazine</a>
+
+<script>
+(function() {
+  'use strict';
+
+  var pages      = [].slice.call(document.querySelectorAll('.page'));
+  var spread     = document.getElementById('spread');
+  var pageNum    = document.getElementById('pageNum');
+  var prevBtn    = document.getElementById('prevBtn');
+  var nextBtn    = document.getElementById('nextBtn');
+  var singleBtn  = document.getElementById('singleBtn');
+  var spreadBtn  = document.getElementById('spreadBtn');
+  var bottombar  = document.getElementById('bottombar');
+  var viewer     = document.getElementById('viewer');
+  var total      = pages.length;
+
+  var current  = 0;
+  var mode     = localStorage.getItem('offscreen-view-mode') || 'single';
+  var turning  = false;
+
+  // ---- Video management ----
+  function getAllVideos() {
+    return [].slice.call(document.querySelectorAll('.page video'));
+  }
+
+  function pauseAllVideos() {
+    getAllVideos().forEach(function(v) {
+      if (!v.paused) {
+        v.pause();
+      }
+    });
+  }
+
+  function playVisibleVideos() {
+    // Pause all first
+    pauseAllVideos();
+
+    // Find currently visible pages
+    var views = getViewList();
+    var viewIdx = currentViewIndex();
+    var visible = views[viewIdx] || [0];
+
+    visible.forEach(function(pageIdx) {
+      var page = pages[pageIdx];
+      if (!page) return;
+      var videos = [].slice.call(page.querySelectorAll('video'));
+      videos.forEach(function(v) {
+        if (v.paused) {
+          var playPromise = v.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(function() {
+              // Autoplay blocked — show poster fallback
+              var poster = v.parentElement.querySelector('.video-poster');
+              if (poster) {
+                poster.style.display = 'block';
+                v.style.display = 'none';
+              }
+            });
+          }
+        }
+      });
+    });
+  }
+
+  // ---- Build dots ----
+  function buildDots() {
+    bottombar.innerHTML = '';
+    var views = getViewList();
+    views.forEach(function(_, i) {
+      var dot = document.createElement('button');
+      dot.className = 'dot';
+      dot.setAttribute('aria-label', 'Go to view ' + (i + 1));
+      dot.addEventListener('click', function() { goToView(i); });
+      bottombar.appendChild(dot);
+    });
+  }
+
+  // ---- View helpers ----
+  function getViewList() {
+    if (mode === 'single') return pages.map(function(_, i) { return [i]; });
+    // Spread: cover alone (page 0), then pairs starting from page 1
+    var views = [[0]];
+    for (var i = 1; i < total; i += 2) {
+      var pair = [i];
+      if (i + 1 < total) pair.push(i + 1);
+      views.push(pair);
+    }
+    return views;
+  }
+
+  function currentViewIndex() {
+    var views = getViewList();
+    for (var i = 0; i < views.length; i++) {
+      if (views[i].indexOf(current) !== -1) return i;
+    }
+    return 0;
+  }
+
+  function goToView(viewIdx) {
+    var views = getViewList();
+    if (viewIdx < 0 || viewIdx >= views.length) return;
+    var target = views[viewIdx][0];
+    if (target === current) return;
+    var dir = target > current ? 'fwd' : 'back';
+    turn(target, dir);
+  }
+
+  // ---- Render ----
+  function render() {
+    var views   = getViewList();
+    var viewIdx = currentViewIndex();
+    var visible = views[viewIdx] || [0];
+
+    // Hide all
+    pages.forEach(function(p) {
+      p.classList.remove('visible', 'single-page', 'left-page', 'right-page');
+    });
+
+    var isSpread = mode === 'spread' && visible.length === 2;
+    spread.classList.toggle('is-spread', isSpread);
+
+    if (isSpread) {
+      pages[visible[0]].classList.add('visible', 'left-page');
+      pages[visible[1]].classList.add('visible', 'right-page');
+    } else {
+      pages[visible[0]].classList.add('visible', 'single-page');
+    }
+
+    // Page number
+    if (isSpread) {
+      pageNum.textContent = (visible[0] + 1) + '\u2013' + (visible[1] + 1) + ' / ' + total;
+    } else {
+      pageNum.textContent = (visible[0] + 1) + ' / ' + total;
+    }
+
+    // Dots
+    var dots = bottombar.querySelectorAll('.dot');
+    for (var i = 0; i < dots.length; i++) {
+      dots[i].classList.toggle('active', i === viewIdx);
+    }
+
+    // Arrow states
+    prevBtn.classList.toggle('disabled', viewIdx === 0);
+    nextBtn.classList.toggle('disabled', viewIdx === views.length - 1);
+
+    // Manage video playback
+    playVisibleVideos();
+  }
+
+  // ---- Page turn animation ----
+  function turn(targetPage, direction) {
+    if (turning) return;
+    turning = true;
+
+    // Exit
+    spread.classList.add(direction === 'fwd' ? 'turning-fwd' : 'turning-back');
+
+    setTimeout(function() {
+      // Swap
+      current = targetPage;
+      render();
+
+      // Prep entrance from other side
+      spread.style.transition = 'none';
+      spread.classList.remove('turning-fwd', 'turning-back');
+      spread.classList.add(direction === 'fwd' ? 'entering-fwd' : 'entering-back');
+      spread.offsetHeight; // force reflow
+
+      // Animate in
+      spread.style.transition = '';
+      spread.classList.remove('entering-fwd', 'entering-back');
+
+      setTimeout(function() {
+        turning = false;
+      }, 340);
+    }, 320);
+  }
+
+  // ---- Navigation ----
+  function next() {
+    var views = getViewList();
+    var vi = currentViewIndex();
+    if (vi < views.length - 1) goToView(vi + 1);
+  }
+  function prev() {
+    var vi = currentViewIndex();
+    if (vi > 0) goToView(vi - 1);
+  }
+
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+
+  // Keyboard
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
+    if (e.key === 'Home') { e.preventDefault(); goToView(0); }
+    if (e.key === 'End') { e.preventDefault(); goToView(getViewList().length - 1); }
+  });
+
+  // Touch / swipe
+  var touchStartX = 0, touchStartY = 0;
+  viewer.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  viewer.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    var dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      dx < 0 ? next() : prev();
+    }
+  }, { passive: true });
+
+  // Click on left/right halves of viewer
+  viewer.addEventListener('click', function(e) {
+    if (e.target.closest('.nav-arrow, .mode-btn, .dot, .branding, a')) return;
+    var rect = viewer.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    if (x < rect.width * 0.25) prev();
+    else if (x > rect.width * 0.75) next();
+  });
+
+  // ---- Mode toggle ----
+  function setMode(m) {
+    mode = m;
+    localStorage.setItem('offscreen-view-mode', m);
+    singleBtn.classList.toggle('active', m === 'single');
+    spreadBtn.classList.toggle('active', m === 'spread');
+    buildDots();
+    render();
+  }
+  singleBtn.addEventListener('click', function() { setMode('single'); });
+  spreadBtn.addEventListener('click', function() { setMode('spread'); });
+
+  // ---- Auto-detect: use spread on wide screens ----
+  function autoMode() {
+    if (window.innerWidth < 900) {
+      if (mode === 'spread') setMode('single');
+      spreadBtn.parentElement.style.display = 'none';
+    } else {
+      spreadBtn.parentElement.style.display = '';
+    }
+  }
+
+  // ---- Restore mode from localStorage ----
+  function initMode() {
+    var saved = localStorage.getItem('offscreen-view-mode');
+    if (saved === 'spread' && window.innerWidth >= 900) {
+      mode = 'spread';
+    } else {
+      mode = 'single';
+    }
+    singleBtn.classList.toggle('active', mode === 'single');
+    spreadBtn.classList.toggle('active', mode === 'spread');
+  }
+
+  // ---- Visibility change: pause videos when tab is hidden ----
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      pauseAllVideos();
+    } else {
+      playVisibleVideos();
+    }
+  });
+
+  // ---- Init ----
+  initMode();
+  autoMode();
+  window.addEventListener('resize', autoMode);
+  buildDots();
+  render();
+})();
+</script>
+</body>
+</html>

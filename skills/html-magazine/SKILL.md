@@ -11,7 +11,14 @@ This skill is the **editorial brain**. It handles style selection, editorial voi
 
 ## Agent Compatibility
 
-This skill uses `AskUserQuestion` for interactive prompts. If `AskUserQuestion` is not available, ask the same questions as plain text and wait for the user to respond.
+This skill works across multiple AI coding agents:
+
+- **Claude Code** — full support, uses `AskUserQuestion` for prompts, `ui-ux-pro-max` plugin for rendering
+- **Gemini CLI** — uses `activate_skill` for skill loading, plain text prompts for user interaction
+- **GitHub Copilot** — plain text prompts, follows skill instructions directly
+- **OpenAI Codex** — plain text prompts, follows skill instructions directly
+
+If `AskUserQuestion` is not available, ask the same questions as plain text in the conversation and wait for the user to respond before proceeding. If `ui-ux-pro-max` is not available, generate the HTML directly using the visual element specifications from the style references.
 
 ---
 

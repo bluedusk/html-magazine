@@ -12,13 +12,6 @@ echo "  HTML Magazine — Remote Installer"
 echo "  ================================="
 echo ""
 
-# --- Check for claude CLI ---
-if ! command -v claude &>/dev/null; then
-  echo "  Error: 'claude' CLI not found."
-  echo "  Install Claude Code first: https://claude.ai/code"
-  exit 1
-fi
-
 # --- Check for git ---
 if ! command -v git &>/dev/null; then
   echo "  Error: 'git' not found. Please install git first."
@@ -37,43 +30,13 @@ if [ -d "$INSTALL_DIR" ]; then
   echo "  ✓ Updated to latest version"
 else
   echo "  Cloning html-magazine..."
+  mkdir -p "$(dirname "$INSTALL_DIR")"
   git clone "https://github.com/${REPO}.git" "$INSTALL_DIR" 2>/dev/null
   echo "  ✓ Cloned to $INSTALL_DIR"
 fi
 
 echo ""
 
-# --- Install dependency: ui-ux-pro-max ---
-echo "  Checking dependency: ui-ux-pro-max..."
-
-if claude plugin list 2>/dev/null | grep -qi "ui-ux-pro-max"; then
-  echo "  ✓ ui-ux-pro-max already installed"
-else
-  echo "  ⚙ Installing ui-ux-pro-max..."
-  if claude plugin add ui-ux-pro-max 2>/dev/null; then
-    echo "  ✓ ui-ux-pro-max installed"
-  else
-    echo "  ⚠ Could not auto-install ui-ux-pro-max."
-    echo "    Please install manually: claude plugin add ui-ux-pro-max"
-  fi
-fi
-
-echo ""
-
-# --- Install html-magazine plugin ---
-echo "  Installing html-magazine plugin..."
-
-if claude plugin add "$INSTALL_DIR" 2>/dev/null; then
-  echo "  ✓ html-magazine installed"
-else
-  echo "  ⚠ Could not auto-install. Please run:"
-  echo "    claude plugin add $INSTALL_DIR"
-fi
-
-echo ""
-echo "  ✅ Done! Restart Claude Code to pick up the new skills."
-echo ""
-echo "  Usage:"
-echo "    /html-magazine              — invoke via slash command"
-echo "    'Turn this into a magazine' — or just ask naturally"
-echo ""
+# --- Run the local installer ---
+cd "$INSTALL_DIR"
+bash install.sh

@@ -35,10 +35,10 @@ If the user hasn't provided content, ask for it. Accept:
 
 Present four options using `AskUserQuestion`:
 
-1. **Editorial** — NYT / The Atlantic (refined serif, long-form gravitas)
-2. **Tech Minimal** — Wired / MIT Technology Review (bold sans, data-forward, high contrast)
-3. **Vibrant Lifestyle** — Vogue / GQ (expressive, fashion-forward, rich color)
-4. **Business** — The Economist / Fortune (authoritative, institutional, signature red)
+1. **Editorial** — NYT / The Atlantic (refined, literary, immersive)
+2. **Tech** — Wired / MIT Technology Review (sharp, data-forward, futuristic)
+3. **Fashion** — Vogue / GQ (luxurious, sensory, photo-forward)
+4. **Creator** — Dazed / i-D / The Face (bold, authentic, youth culture)
 
 If the user already named a style, confirm and continue.
 
@@ -57,7 +57,7 @@ Read the relevant reference file:
 - `references/editorial.md` — NYT / The Atlantic
 - `references/tech-minimal.md` — Wired / MIT Technology Review
 - `references/vibrant-lifestyle.md` — Vogue / GQ
-- `references/business.md` — The Economist / Fortune
+- `references/creator.md` — Dazed / i-D / The Face
 
 Each file contains two sections:
 - **Editorial Voice** — how the writing should sound at this magazine
@@ -78,35 +78,16 @@ Using the editorial voice section from the style reference, rewrite the content 
 - **Sidebar/callout** — optional, but required for Business style
 - **Image captions** — evocative, matching the editorial voice
 
-### 6. Source Images
-
-Use the **Wikimedia Commons API** to find freely-licensed images. This is the only reliable automated method.
-
-**Step 1 — Search:**
-```
-WebFetch: https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch={terms}&srnamespace=6&srlimit=5&format=json
-```
-Use search terms from the style reference's Photography Direction section, combined with the article's topic.
-
-**Step 2 — Get image URL:**
-```
-WebFetch: https://commons.wikimedia.org/w/api.php?action=query&titles={File:filename.jpg}&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1200&format=json
-```
-Use the `thumburl` (1200px) for the `<img>` src. Extract photographer from `extmetadata.Artist` for attribution.
-
-Aim for **2-4 images**: 1 hero/cover + 1-3 body images.
-
-If Wikimedia returns poor results, fall back to **CSS-only visuals** (gradients, geometric patterns, color blocks).
-
-### 7. Pass to ui-ux-pro-max
+### 6. Pass to ui-ux-pro-max
 
 Invoke the `ui-ux-pro-max` skill with a complete visual brief. The brief must include everything ui-ux-pro-max needs to generate the HTML — don't assume it knows what a "magazine" looks like.
 
 Construct the brief by combining:
 1. The **Visual Elements** section from the style reference (colors, typography, layout elements, photography direction)
 2. The **rewritten content** with all magazine elements
-3. The **sourced image URLs** with captions and attribution
-4. The **rendering specifications** below
+3. The **rendering specifications** below
+
+ui-ux-pro-max is responsible for sourcing images and media. Include the **Photography Direction** from the style reference so it knows what mood and style of imagery to find.
 
 **Rendering specifications to include in the brief:**
 
@@ -141,12 +122,11 @@ PAGES TO GENERATE:
 3. Body pages — sections with images, pull quotes, sidebars
 4. Closing page — final section, author credit, publication footer
 
-IMAGE SOURCING:
-- Use these Wikimedia Commons image URLs: [list URLs]
-- Search for additional images if needed using Wikimedia Commons API:
-  Search: https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch={terms}&srnamespace=6&srlimit=5&format=json
-  Get URL: https://commons.wikimedia.org/w/api.php?action=query&titles={File:name}&prop=imageinfo&iiprop=url&iiurlwidth=1200&format=json
-- If images can't be sourced, use CSS-only visuals (gradients, patterns)
+IMAGES & MEDIA:
+- You (ui-ux-pro-max) are responsible for sourcing images and videos that match the content
+- Search for and embed relevant images and videos that complement the article
+- Follow the photography/media direction from the style reference included above
+- If you can't find suitable media, use CSS-only visuals (gradients, geometric patterns, color blocks)
 
 BRANDING:
 - Add a small "Built with html-magazine" watermark in the bottom-right corner of the page

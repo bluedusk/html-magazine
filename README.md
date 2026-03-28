@@ -24,7 +24,7 @@ bash install.sh
 
 1. **Detects your agents** — scans for `claude`, `gemini`, `gh` (Copilot), `codex`
 2. **Installs ui-ux-pro-max** (required dependency) for each detected agent:
-   - Claude Code → `claude plugin add ui-ux-pro-max`
+   - Claude Code → `claude plugin install ui-ux-pro-max`
    - Gemini / Copilot / Codex → `npx uipro-cli init --ai <agent>`
 3. **Installs html-magazine** for each detected agent:
    - Claude Code → plugin system
@@ -44,7 +44,8 @@ If you only want one agent:
 
 ```bash
 # Claude Code only
-claude plugin add /path/to/html-magazine
+claude plugin marketplace add bluedusk/html-magazine
+claude plugin install html-magazine
 
 # Gemini CLI only
 ln -s /path/to/html-magazine ~/.gemini/skills/html-magazine
@@ -92,7 +93,7 @@ Don't forget to install ui-ux-pro-max separately for your agent.
 | **Editorial** | NYT Magazine / The Atlantic | Serif, dark covers, crimson accents | Measured, literary, scene-setting |
 | **Tech Minimal** | Wired / MIT Technology Review | Bold sans, neon green, gradient rules | Sharp, data-forward, declarative |
 | **Vibrant Lifestyle** | Vogue / GQ | Gold accents, wide margins, full-bleed photos | Sensory, confident, vivid |
-| **Business** | The Economist / Fortune | Red signature, two-column, cream paper | Authoritative, dry wit, information-dense |
+| **Creator** | Dazed / i-D / The Face | Bold sans, one pop color, collage energy | Casual, authentic, internet-native |
 
 ## Rewrite Levels
 

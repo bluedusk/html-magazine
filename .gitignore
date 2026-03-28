@@ -1,6 +1,8 @@
 .superpowers/
 html-magazine-workspace/
 *.html
+!samples/*.html
 __pycache__/
 *.pyc
 .DS_Store
+.vercel/

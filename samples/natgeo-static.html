@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TERRA — Explore the Planet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.pexels.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
+<style>
+:root {
+  --yellow: #FFCC00;
+  --yellow-dark: #E6B800;
+  --black: #0A0A0A;
+  --white: #fff;
+  --paper: #FAFAF7;
+  --ink: #111;
+  --gray-200: #E8E6E1;
+  --gray-400: #999;
+  --gray-600: #555;
+  --earth: #8B6914;
+  --font-sans: 'Inter', -apple-system, Helvetica, Arial, sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, serif;
+  --pad: clamp(24px, 3.5vw, 44px);
+  --ratio: 210 / 297;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-serif);
+  background: #0C0C0C;
+  color: var(--ink);
+  overflow: hidden;
+  height: 100dvh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Top Bar */
+.topbar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #777;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.topbar-left { min-width: 80px; font-variant-numeric: tabular-nums; }
+.topbar-center { display: flex; gap: 4px; }
+.topbar-right { min-width: 80px; text-align: right; }
+.topbar-brand {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  color: var(--yellow);
+}
+
+.mode-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #666;
+  padding: 4px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.mode-btn:hover { border-color: rgba(255,255,255,0.25); color: #aaa; }
+.mode-btn.active { background: rgba(255,204,0,0.1); color: var(--yellow); border-color: rgba(255,204,0,0.3); }
+.mode-btn svg { width: 14px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+/* Viewer */
+.viewer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 12px 52px;
+}
+
+/* Spread */
+.spread {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  height: 100%;
+  max-height: calc(100dvh - 44px - 40px - 24px);
+}
+.spread.is-spread::after {
+  content: '';
+  position: absolute;
+  top: 2%; bottom: 2%; left: 50%;
+  width: 50px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.3) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Page */
+.page {
+  aspect-ratio: var(--ratio);
+  height: 100%;
+  max-height: calc(100dvh - 44px - 40px - 24px);
+  background: var(--paper);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: none;
+  flex-direction: column;
+}
+.page.visible { display: flex; }
+.page.single-page { box-shadow: 0 2px 10px rgba(0,0,0,0.2), 0 12px 40px rgba(0,0,0,0.25); }
+.page.left-page { box-shadow: -6px 2px 16px rgba(0,0,0,0.15), inset -25px 0 35px -25px rgba(0,0,0,0.07); border-right: 1px solid rgba(0,0,0,0.04); }
+.page.right-page { box-shadow: 6px 2px 16px rgba(0,0,0,0.15), inset 25px 0 35px -25px rgba(0,0,0,0.07); border-left: 1px solid rgba(0,0,0,0.04); }
+
+.page-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Folio */
+.folio {
+  position: absolute;
+  bottom: 14px;
+  left: var(--pad);
+  right: var(--pad);
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-sans);
+  font-size: 7px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  z-index: 3;
+}
+.folio-light { color: rgba(255,255,255,0.35); }
+
+/* Nav */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.25);
+  cursor: pointer;
+  padding: 14px 6px;
+  transition: color 0.2s;
+  font-size: 26px;
+  font-weight: 200;
+}
+.nav-arrow:hover { color: rgba(255,255,255,0.6); }
+.nav-arrow.disabled { opacity: 0.1; pointer-events: none; }
+.nav-prev { left: 8px; }
+.nav-next { right: 8px; }
+
+/* Dots */
+.bottombar {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  transition: all 0.3s;
+  cursor: pointer; border: none; padding: 0;
+}
+.dot.active { background: var(--yellow); transform: scale(1.4); }
+.dot:hover { background: rgba(255,255,255,0.3); }
+
+/* ============================================================
+   COVER — NatGeo iconic yellow border
+   ============================================================ */
+.cover-photo {
+  position: absolute;
+  inset: 0;
+  background: url('https://images.pexels.com/photos/624015/pexels-photo-624015.jpeg?auto=compress&cs=tinysrgb&w=1200') center / cover no-repeat;
+}
+.cover-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 30%, transparent 50%),
+    linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 18%);
+}
+/* Yellow border frame */
+.cover-frame {
+  position: absolute;
+  inset: 8px;
+  border: 3px solid var(--yellow);
+  z-index: 2;
+  pointer-events: none;
+}
+.cover-inner {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--pad);
+  color: var(--white);
+}
+.cover-masthead {
+  font-family: var(--font-sans);
+  font-size: clamp(40px, 8vw, 72px);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-align: center;
+  line-height: 1;
+  color: var(--yellow);
+  text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+}
+.cover-tagline {
+  text-align: center;
+  font-family: var(--font-sans);
+  font-size: 7px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  margin-top: 4px;
+  color: var(--yellow);
+  opacity: 0.8;
+}
+.cover-bottom {
+  margin-top: auto;
+  text-align: center;
+}
+.cover-headline {
+  font-family: var(--font-sans);
+  font-size: clamp(16px, 2.5vw, 24px);
+  font-weight: 700;
+  line-height: 1.3;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+  margin-bottom: 6px;
+}
+.cover-sub-headlines {
+  font-family: var(--font-sans);
+  font-size: clamp(9px, 1.3vw, 12px);
+  font-weight: 400;
+  line-height: 2;
+  opacity: 0.8;
+  text-shadow: 0 1px 12px rgba(0,0,0,0.4);
+}
+.cover-issue {
+  font-family: var(--font-sans);
+  font-size: 7px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-top: 12px;
+  opacity: 0.45;
+}
+
+/* ============================================================
+   Shared: Section label
+   ============================================================ */
+.label {
+  font-family: var(--font-sans);
+  font-size: 7px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--earth);
+  margin-bottom: 14px;
+}
+.label-yellow { color: var(--yellow); }
+.rule { width: 32px; height: 2px; background: var(--yellow); border: none; margin: 12px 0; }
+
+/* ============================================================
+   Editor's Note
+   ============================================================ */
+.letter {
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.letter h2 {
+  font-family: var(--font-sans);
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+.letter-body {
+  font-size: clamp(10.5px, 1.3vw, 12.5px);
+  line-height: 1.8;
+  color: var(--gray-600);
+  flex: 1;
+}
+.letter-body p { margin-bottom: 10px; }
+.sig {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(14px, 1.8vw, 18px);
+}
+.sig-title {
+  font-family: var(--font-sans);
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  margin-top: 3px;
+}
+
+/* ============================================================
+   Contents
+   ============================================================ */
+.toc {
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.toc h2 {
+  font-family: var(--font-sans);
+  font-size: clamp(26px, 4vw, 36px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-bottom: 20px;
+}
+.toc-list { list-style: none; flex: 1; }
+.toc-item {
+  display: flex;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--gray-200);
+  gap: 10px;
+}
+.toc-num {
+  font-family: var(--font-sans);
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-weight: 300;
+  color: var(--yellow-dark);
+  min-width: 28px;
+}
+.toc-title {
+  font-family: var(--font-sans);
+  font-size: clamp(12px, 1.6vw, 15px);
+  font-weight: 600;
+}
+.toc-desc {
+  font-size: clamp(8px, 1vw, 10px);
+  color: var(--gray-400);
+  font-style: italic;
+  margin-top: 1px;
+}
+.toc-pg {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  color: var(--gray-400);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   Full-bleed feature image
+   ============================================================ */
+.feat-img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.feat-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.12) 35%, transparent 55%);
+}
+.feat-overlay {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--pad);
+  color: var(--white);
+}
+.feat-overlay h2 {
+  font-family: var(--font-sans);
+  font-size: clamp(24px, 4.5vw, 42px);
+  font-weight: 800;
+  line-height: 1.1;
+  text-shadow: 0 2px 30px rgba(0,0,0,0.5);
+}
+.feat-overlay .subtitle {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(10px, 1.4vw, 13px);
+  margin-top: 6px;
+  opacity: 0.85;
+}
+.feat-overlay .byline {
+  font-family: var(--font-sans);
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 8px;
+  opacity: 0.5;
+}
+/* Yellow accent bar on feature titles */
+.feat-overlay h2::before {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 3px;
+  background: var(--yellow);
+  margin-bottom: 10px;
+}
+
+/* Specific photos */
+.img-elephant { background-image: url('https://images.pexels.com/photos/15994111/pexels-photo-15994111.jpeg?auto=compress&cs=tinysrgb&w=1200'); }
+.img-coral    { background-image: url('https://images.pexels.com/photos/3760999/pexels-photo-3760999.jpeg?auto=compress&cs=tinysrgb&w=1200'); }
+.img-volcano  { background-image: url('https://images.pexels.com/photos/33295503/pexels-photo-33295503.jpeg?auto=compress&cs=tinysrgb&w=1200'); }
+.img-aurora2  { background-image: url('https://images.pexels.com/photos/1933317/pexels-photo-1933317.jpeg?auto=compress&cs=tinysrgb&w=1200'); }
+
+/* ============================================================
+   Article text page
+   ============================================================ */
+.article {
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.article-cols {
+  columns: 2;
+  column-gap: 22px;
+  font-size: clamp(10px, 1.25vw, 12.5px);
+  line-height: 1.78;
+  color: var(--gray-600);
+  flex: 1;
+  overflow: hidden;
+}
+.article-cols p { margin-bottom: 9px; text-align: justify; hyphens: auto; }
+.drop-cap::first-letter {
+  font-family: var(--font-sans);
+  font-size: 3.6em;
+  float: left;
+  line-height: 0.8;
+  padding-right: 7px;
+  padding-top: 4px;
+  color: var(--ink);
+  font-weight: 900;
+}
+.pull-quote {
+  column-span: all;
+  text-align: center;
+  padding: 12px 8px;
+  margin: 10px 0;
+  border-top: 2px solid var(--yellow);
+  border-bottom: 2px solid var(--yellow);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(13px, 2vw, 18px);
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+/* ============================================================
+   Photo grid page
+   ============================================================ */
+.grid-page {
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.photo-grid {
+  flex: 1;
+  display: grid;
+  gap: 5px;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1.3fr 1fr;
+}
+.photo-cell {
+  position: relative;
+  overflow: hidden;
+}
+.photo-cell.wide { grid-column: span 2; }
+.photo-cell-img {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.6s cubic-bezier(0.25,0.1,0.25,1);
+}
+.photo-cell:hover .photo-cell-img { transform: scale(1.04); }
+.photo-caption {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 5px 8px;
+  background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
+  color: white;
+  font-family: var(--font-sans);
+  font-size: 7px;
+  letter-spacing: 0.08em;
+}
+.grid-footnote {
+  font-size: clamp(8px, 1vw, 10px);
+  color: var(--gray-400);
+  font-style: italic;
+  text-align: center;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* Specific grid images */
+.gi-coral1 { background-image: url('https://images.pexels.com/photos/4618226/pexels-photo-4618226.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.gi-coral2 { background-image: url('https://images.pexels.com/photos/668790/pexels-photo-668790.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.gi-elephant1 { background-image: url('https://images.pexels.com/photos/4577507/pexels-photo-4577507.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.gi-elephant2 { background-image: url('https://images.pexels.com/photos/7001091/pexels-photo-7001091.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.gi-volcano1 { background-image: url('https://images.pexels.com/photos/6307488/pexels-photo-6307488.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.gi-volcano2 { background-image: url('https://images.pexels.com/photos/30100616/pexels-photo-30100616.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.gi-aurora1 { background-image: url('https://images.pexels.com/photos/1933317/pexels-photo-1933317.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.gi-aurora2 { background-image: url('https://images.pexels.com/photos/32154420/pexels-photo-32154420.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+
+/* ============================================================
+   Data / Stat box (NatGeo infographic style)
+   ============================================================ */
+.stat-box {
+  background: rgba(255,204,0,0.06);
+  border-left: 3px solid var(--yellow);
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+.stat-box strong {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 7px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--earth);
+  margin-bottom: 4px;
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-sans);
+  font-size: clamp(9px, 1.1vw, 11px);
+  line-height: 1.8;
+  color: var(--gray-600);
+}
+.stat-val {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ============================================================
+   Photo essay page (large image + caption)
+   ============================================================ */
+.essay-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.essay-img {
+  flex: 1;
+  position: relative;
+}
+.essay-caption {
+  padding: 10px var(--pad) 6px;
+  font-size: clamp(9px, 1.1vw, 11px);
+  line-height: 1.65;
+  color: var(--gray-600);
+}
+.essay-caption .credit {
+  font-family: var(--font-sans);
+  font-size: 7px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  margin-top: 4px;
+}
+
+/* ============================================================
+   Preview / Next issue
+   ============================================================ */
+.preview-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.preview-img {
+  flex: 1;
+  position: relative;
+  background: url('https://images.pexels.com/photos/32154420/pexels-photo-32154420.jpeg?auto=compress&cs=tinysrgb&w=1000') center / cover no-repeat;
+}
+.preview-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--paper) 0%, transparent 40%);
+}
+.preview-text {
+  position: relative;
+  z-index: 2;
+  padding: 0 var(--pad) var(--pad);
+  text-align: center;
+}
+.preview-text h2 {
+  font-family: var(--font-sans);
+  font-size: clamp(16px, 2.4vw, 22px);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.preview-text p {
+  font-size: clamp(9.5px, 1.1vw, 11px);
+  line-height: 1.7;
+  color: var(--gray-600);
+  max-width: 85%;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   Back cover
+   ============================================================ */
+.back-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--pad);
+  background: var(--black);
+  color: var(--white);
+  text-align: center;
+}
+.back-logo {
+  font-family: var(--font-sans);
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  color: var(--yellow);
+}
+.back-tagline {
+  font-family: var(--font-sans);
+  font-size: 7px;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  opacity: 0.35;
+  margin-top: 6px;
+  margin-bottom: 28px;
+}
+.back-rule { width: 24px; height: 2px; background: var(--yellow); opacity: 0.4; margin-bottom: 28px; }
+.back-info {
+  font-family: var(--font-sans);
+  font-size: 7px;
+  letter-spacing: 0.15em;
+  line-height: 2.4;
+  opacity: 0.2;
+  text-transform: uppercase;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .viewer { padding: 8px 10px; }
+  .mode-btn.spread-btn { display: none; }
+  :root { --pad: 18px; }
+  .article-cols { columns: 1; }
+  .cover-masthead { letter-spacing: 0.08em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spread { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left"><span id="pageNum">1 / 12</span></div>
+  <div class="topbar-center">
+    <button class="mode-btn single-btn active" id="singleBtn" aria-label="Single page">
+      <svg viewBox="0 0 14 12"><rect x="2.5" y="0.5" width="9" height="11" rx="1"/></svg> Single
+    </button>
+    <button class="mode-btn spread-btn" id="spreadBtn" aria-label="Spread view">
+      <svg viewBox="0 0 14 12"><rect x="0.5" y="0.5" width="5.5" height="11" rx="1"/><rect x="8" y="0.5" width="5.5" height="11" rx="1"/></svg> Spread
+    </button>
+  </div>
+  <div class="topbar-right"><span class="topbar-brand">TERRA</span></div>
+</div>
+
+<!-- VIEWER -->
+<div class="viewer" id="viewer">
+  <button class="nav-arrow nav-prev" id="prevBtn" aria-label="Previous">&#8249;</button>
+  <button class="nav-arrow nav-next" id="nextBtn" aria-label="Next">&#8250;</button>
+
+  <div class="spread" id="spread">
+
+    <!-- PAGE 0: COVER -->
+    <div class="page" data-page="0">
+      <div class="page-inner">
+        <div class="cover-photo"></div>
+        <div class="cover-frame"></div>
+        <div class="cover-inner">
+          <div class="cover-masthead">TERRA</div>
+          <div class="cover-tagline">Explore the Planet</div>
+          <div class="cover-bottom">
+            <div class="cover-headline">The Last Giants<br>of the Serengeti</div>
+            <div class="cover-sub-headlines">
+              Into the Deep: Life on the Ocean Floor<br>
+              Ring of Fire: Earth's Volcanic Frontier<br>
+              Chasing the Northern Lights
+            </div>
+            <div class="cover-issue">March 2026 &middot; Volume 42 &middot; No. 3</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 1: FROM THE FIELD -->
+    <div class="page" data-page="1">
+      <div class="page-inner letter">
+        <div class="label">From the Field</div>
+        <h2>The World Is Still<br>Full of Wonders</h2>
+        <div class="rule"></div>
+        <div class="letter-body">
+          <p>Dear Reader,</p>
+          <p>I am writing this from a research camp in northern Tanzania, where the Serengeti stretches to the horizon in every direction. This morning, at dawn, I watched a herd of elephants cross the Mara River &mdash; the matriarch leading, the youngest sheltered between the bodies of her aunts, the water rising to their bellies as the current pulled at their legs.</p>
+          <p>It was a crossing they have made for centuries. And it was, in that moment, the most important thing happening on Earth.</p>
+          <p>This issue is dedicated to the forces &mdash; geological, biological, atmospheric &mdash; that remind us our planet is alive. We dive to coral reefs that pulse with colour in water no sunlight has touched. We stand at the rim of volcanoes that reshape continents. We chase the aurora across Arctic skies.</p>
+          <p>The world does not need us to be amazed by it. But we need it. We need the reminder that we belong to something vast and beautiful and worth protecting.</p>
+          <p>Stay curious.</p>
+        </div>
+        <div class="rule"></div>
+        <div class="sig">Dr. Elena Vasquez</div>
+        <div class="sig-title">Editor-in-Chief &middot; Wildlife Biologist</div>
+      </div>
+      <div class="folio"><span>Terra</span><span>2</span></div>
+    </div>
+
+    <!-- PAGE 2: CONTENTS -->
+    <div class="page" data-page="2">
+      <div class="page-inner toc">
+        <div class="label">March 2026</div>
+        <h2>Contents</h2>
+        <ul class="toc-list">
+          <li class="toc-item">
+            <span class="toc-num">04</span>
+            <div><div class="toc-title">The Last Giants of the Serengeti</div><div class="toc-desc">Elephant families navigate a shrinking world</div></div>
+            <span class="toc-pg">p.4</span>
+          </li>
+          <li class="toc-item">
+            <span class="toc-num">06</span>
+            <div><div class="toc-title">Into the Deep</div><div class="toc-desc">Life thriving in the ocean's twilight zone</div></div>
+            <span class="toc-pg">p.6</span>
+          </li>
+          <li class="toc-item">
+            <span class="toc-num">08</span>
+            <div><div class="toc-title">Ring of Fire</div><div class="toc-desc">Earth's volcanic frontier, from Hawaii to Iceland</div></div>
+            <span class="toc-pg">p.8</span>
+          </li>
+          <li class="toc-item">
+            <span class="toc-num">10</span>
+            <div><div class="toc-title">Chasing the Aurora</div><div class="toc-desc">A photographic journey beneath the northern lights</div></div>
+            <span class="toc-pg">p.10</span>
+          </li>
+          <li class="toc-item">
+            <span class="toc-num">11</span>
+            <div><div class="toc-title">Coming Next</div><div class="toc-desc">The Amazon, Antarctica, and the age of coral</div></div>
+            <span class="toc-pg">p.11</span>
+          </li>
+        </ul>
+      </div>
+      <div class="folio"><span>Volume 42</span><span>3</span></div>
+    </div>
+
+    <!-- PAGE 3: SERENGETI (IMAGE) -->
+    <div class="page" data-page="3">
+      <div class="page-inner">
+        <div class="feat-img img-elephant"></div>
+        <div class="feat-overlay">
+          <div class="label label-yellow" style="color:rgba(255,204,0,0.7)">Wildlife</div>
+          <h2>The Last Giants<br>of the Serengeti</h2>
+          <div class="subtitle">How elephant families navigate drought, poaching, and a shrinking world</div>
+          <div class="byline">Text by Dr. James Kibo &middot; Photography by Sarah Weru</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 4: SERENGETI (TEXT) -->
+    <div class="page" data-page="4">
+      <div class="page-inner article">
+        <div class="label">The Serengeti, Tanzania</div>
+        <div class="article-cols">
+          <p class="drop-cap">The matriarch is called Noor by the researchers who have followed her family for twenty-three years. She is fifty-one years old, weighs roughly four tonnes, and carries in her memory a map of water sources that stretches across two thousand square kilometres of savanna.</p>
+          <p>This knowledge &mdash; passed from mother to daughter across generations &mdash; is the family's most vital resource. In the dry season, when the Serengeti turns from green to gold to dust, Noor leads her herd to waterholes that younger elephants have never seen. She remembers droughts from decades past, routes that bypass human settlements, river crossings where the footing is firm.</p>
+          <div class="pull-quote">&ldquo;When a matriarch dies, her family doesn't just lose a leader. They lose a library.&rdquo;</div>
+          <p>The Serengeti's elephant population has stabilised in recent years &mdash; roughly 6,500 individuals, up from a catastrophic low of 2,300 in 2009. Anti-poaching patrols, community conservation programmes, and international ivory bans have made a difference. But the threats have evolved.</p>
+          <p>Climate change is redrawing the map Noor carries. Rivers that flowed year-round now run dry by August. Grazing lands shrink as agriculture expands. Corridors that once connected protected areas are narrowing, forcing families into ever-closer contact with human communities.</p>
+        </div>
+        <div class="stat-box">
+          <strong>By the Numbers</strong>
+          <div class="stat-row"><span>African elephant population (2024)</span><span class="stat-val">415,000</span></div>
+          <div class="stat-row"><span>Serengeti herd size</span><span class="stat-val">~6,500</span></div>
+          <div class="stat-row"><span>Avg. family group</span><span class="stat-val">8&ndash;12 individuals</span></div>
+          <div class="stat-row"><span>Daily water intake per adult</span><span class="stat-val">200 litres</span></div>
+        </div>
+      </div>
+      <div class="folio"><span>Terra &middot; Wildlife</span><span>5</span></div>
+    </div>
+
+    <!-- PAGE 5: OCEAN (IMAGE) -->
+    <div class="page" data-page="5">
+      <div class="page-inner">
+        <div class="feat-img img-coral"></div>
+        <div class="feat-overlay">
+          <div class="label label-yellow" style="color:rgba(255,204,0,0.7)">Ocean Science</div>
+          <h2>Into the Deep</h2>
+          <div class="subtitle">Below 200 metres, where sunlight fades, a hidden world thrives</div>
+          <div class="byline">Text by Dr. Maren Solberg &middot; Photography by Francesco Ungaro</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 6: OCEAN (GRID + TEXT) -->
+    <div class="page" data-page="6">
+      <div class="page-inner grid-page">
+        <div class="label">Ocean Science</div>
+        <div class="photo-grid">
+          <div class="photo-cell wide"><div class="photo-cell-img gi-coral1"></div><div class="photo-caption">Vibrant soft corals in the Indo-Pacific, home to 25% of all marine species</div></div>
+          <div class="photo-cell"><div class="photo-cell-img gi-coral2"></div><div class="photo-caption">Green coral colonies, Great Barrier Reef</div></div>
+          <div class="photo-cell"><div class="photo-cell-img gi-elephant1"></div><div class="photo-caption">A bull elephant at the Mara River crossing</div></div>
+        </div>
+        <div class="grid-footnote">
+          The ocean's twilight zone &mdash; 200 to 1,000 metres deep &mdash; contains more fish biomass than all the world's fisheries combined. Most of it has never been studied.
+        </div>
+      </div>
+      <div class="folio"><span>Terra &middot; Ocean Science</span><span>7</span></div>
+    </div>
+
+    <!-- PAGE 7: VOLCANO (IMAGE) -->
+    <div class="page" data-page="7">
+      <div class="page-inner">
+        <div class="feat-img img-volcano"></div>
+        <div class="feat-overlay">
+          <div class="label label-yellow" style="color:rgba(255,204,0,0.7)">Geology</div>
+          <h2>Ring of Fire</h2>
+          <div class="subtitle">The volcanic frontier where Earth's crust is still being written</div>
+          <div class="byline">Text by Professor Akira Tanaka &middot; Photography by James Lee</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 8: VOLCANO (TEXT + GRID) -->
+    <div class="page" data-page="8">
+      <div class="page-inner article">
+        <div class="label">Geology &middot; Ring of Fire</div>
+        <div class="article-cols">
+          <p class="drop-cap">Kilauea has been erupting, in one form or another, since 1983. That makes it the longest continuous eruption in recorded history &mdash; a slow, relentless act of creation that has added over 230 hectares of new land to the island of Hawaii.</p>
+          <p>Stand at the rim of Halema'uma'u crater at night and you see the Earth breathing. The lava lake rises and falls in cycles, its surface cracking into incandescent orange plates that drift apart like continental shelves in miniature. The heat is extraordinary &mdash; 1,170 degrees Celsius at the surface.</p>
+          <div class="pull-quote">&ldquo;Volcanoes do not destroy. They create. Every island in the Pacific began as a whisper of magma on the ocean floor.&rdquo;</div>
+          <p>The Ring of Fire &mdash; a 40,000-kilometre horseshoe of tectonic boundaries circling the Pacific &mdash; accounts for 75% of the world's active volcanoes and 90% of its earthquakes. It runs from New Zealand through Indonesia, Japan, Kamchatka, Alaska, and down the western coast of the Americas.</p>
+          <p>In Iceland, the Mid-Atlantic Ridge surfaces, splitting the island in two. The 2024 eruptions near Grindavik reminded the world that geology operates on its own timetable, indifferent to property lines and evacuation plans.</p>
+        </div>
+        <div class="stat-box">
+          <strong>Ring of Fire</strong>
+          <div class="stat-row"><span>Active volcanoes</span><span class="stat-val">452</span></div>
+          <div class="stat-row"><span>Circumference</span><span class="stat-val">40,000 km</span></div>
+          <div class="stat-row"><span>Lava temperature (basaltic)</span><span class="stat-val">1,170 &deg;C</span></div>
+          <div class="stat-row"><span>New land from Kilauea since 1983</span><span class="stat-val">230+ hectares</span></div>
+        </div>
+      </div>
+      <div class="folio"><span>Terra &middot; Geology</span><span>9</span></div>
+    </div>
+
+    <!-- PAGE 9: AURORA (PHOTO ESSAY) -->
+    <div class="page" data-page="9">
+      <div class="page-inner essay-page">
+        <div class="essay-img">
+          <div class="feat-img img-aurora2"></div>
+        </div>
+        <div class="essay-caption">
+          <div class="label" style="margin-bottom:6px">Photo Essay &middot; The Aurora</div>
+          The aurora borealis above Troms&oslash;, Norway. Solar wind particles collide with atmospheric gases 100 kilometres above the Earth, releasing photons of green (oxygen), red (high-altitude oxygen), and purple (nitrogen). No two displays are alike. This exposure, taken at 2:14 a.m. on a night when temperatures fell to &minus;28&deg;C, captures a coronal burst that lasted eleven seconds.
+          <div class="credit">Photograph by Halldor Sigurdsson &middot; February 2026</div>
+        </div>
+      </div>
+      <div class="folio"><span>Terra &middot; Photo Essay</span><span>10</span></div>
+    </div>
+
+    <!-- PAGE 10: NEXT ISSUE -->
+    <div class="page" data-page="10">
+      <div class="page-inner preview-page">
+        <div class="preview-img"></div>
+        <div class="preview-text">
+          <div class="label">Coming Next Issue</div>
+          <div class="rule" style="margin: 0 auto 8px;"></div>
+          <h2>The Amazon: Last Breath<br>of the Lungs of the World</h2>
+          <p>We spend three months in the Brazilian Amazon documenting the frontline between deforestation and one of the most biodiverse ecosystems on Earth. Plus: the hidden rivers beneath Antarctica, why coral may hold the key to medicine, and a photo portfolio from the Gal&aacute;pagos at 200 years.</p>
+          <div class="rule" style="margin: 12px auto;"></div>
+          <p style="font-family:var(--font-sans);font-size:clamp(7px,0.9vw,9px);color:var(--gray-400);letter-spacing:0.15em;text-transform:uppercase">April 2026 &middot; Volume 42 &middot; No. 4</p>
+        </div>
+      </div>
+      <div class="folio"><span>Terra</span><span>11</span></div>
+    </div>
+
+    <!-- PAGE 11: BACK COVER -->
+    <div class="page" data-page="11">
+      <div class="page-inner back-cover">
+        <div class="back-logo">TERRA</div>
+        <div class="back-tagline">Explore the Planet</div>
+        <div class="back-rule"></div>
+        <div class="back-info">
+          Published Monthly<br>
+          Washington &middot; London &middot; Nairobi &middot; Sydney &middot; Tokyo<br><br>
+          Volume 42 &middot; No. 3 &middot; March 2026<br>
+          &copy; 2026 Terra Geographic Society
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottombar" id="bottombar"></div>
+
+<!-- JAVASCRIPT -->
+<script>
+(function() {
+  'use strict';
+  const pages = [...document.querySelectorAll('.page')];
+  const spread = document.getElementById('spread');
+  const pageNum = document.getElementById('pageNum');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const singleBtn = document.getElementById('singleBtn');
+  const spreadBtn = document.getElementById('spreadBtn');
+  const bottombar = document.getElementById('bottombar');
+  const viewer = document.getElementById('viewer');
+  const total = pages.length;
+  const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let current = 0, mode = 'single', turning = false;
+
+  function buildDots() {
+    bottombar.innerHTML = '';
+    getViewList().forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'dot';
+      d.setAttribute('aria-label', 'Page ' + (i + 1));
+      d.addEventListener('click', () => goToView(i));
+      bottombar.appendChild(d);
+    });
+  }
+  function getViewList() {
+    if (mode === 'single') return pages.map((_, i) => [i]);
+    const v = [[0]];
+    for (let i = 1; i < total - 1; i += 2) { const p = [i]; if (i + 1 < total) p.push(i + 1); v.push(p); }
+    if (total % 2 === 0) v.push([total - 1]);
+    return v;
+  }
+  function vi() { return getViewList().findIndex(v => v.includes(current)); }
+  function goToView(idx) {
+    const views = getViewList();
+    if (idx < 0 || idx >= views.length) return;
+    const t = views[idx][0];
+    if (t === current) return;
+    pageTurn(t, t > current ? 'fwd' : 'back');
+  }
+  function render() {
+    const views = getViewList(), v = vi(), visible = views[v] || [0];
+    pages.forEach(p => p.classList.remove('visible', 'single-page', 'left-page', 'right-page'));
+    const isSpread = mode === 'spread' && visible.length === 2;
+    spread.classList.toggle('is-spread', isSpread);
+    if (isSpread) { pages[visible[0]].classList.add('visible', 'left-page'); pages[visible[1]].classList.add('visible', 'right-page'); }
+    else { pages[visible[0]].classList.add('visible', 'single-page'); }
+    pageNum.textContent = isSpread ? (visible[0]+1)+'\u2013'+(visible[1]+1)+' / '+total : (visible[0]+1)+' / '+total;
+    bottombar.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i === v));
+    prevBtn.classList.toggle('disabled', v === 0);
+    nextBtn.classList.toggle('disabled', v === views.length - 1);
+  }
+
+  // GSAP page turn — physical page flip feel
+  async function pageTurn(target, dir) {
+    if (turning) return; turning = true;
+    if (noMotion) { current = target; render(); turning = false; return; }
+    const fwd = dir === 'fwd';
+    await gsap.to(spread, {
+      rotationY: fwd ? -6 : 6, xPercent: fwd ? -3 : 3, opacity: 0.3, scale: 0.98,
+      duration: 0.3, ease: 'power2.in', transformPerspective: 1200,
+      transformOrigin: fwd ? 'left center' : 'right center',
+    });
+    current = target; render();
+    gsap.set(spread, { rotationY: fwd ? 4 : -4, xPercent: fwd ? 2 : -2, opacity: 0.3, scale: 0.99 });
+    await gsap.to(spread, {
+      rotationY: 0, xPercent: 0, opacity: 1, scale: 1,
+      duration: 0.35, ease: 'power2.out', transformPerspective: 1200,
+      transformOrigin: fwd ? 'right center' : 'left center',
+    });
+    turning = false;
+  }
+
+  function next() { const v = getViewList(), i = vi(); if (i < v.length - 1) goToView(i + 1); }
+  function prev() { const i = vi(); if (i > 0) goToView(i - 1); }
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
+    if (e.key === 'Home') { e.preventDefault(); goToView(0); }
+    if (e.key === 'End') { e.preventDefault(); goToView(getViewList().length - 1); }
+  });
+  let tx = 0, ty = 0;
+  viewer.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+  viewer.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) dx < 0 ? next() : prev();
+  }, { passive: true });
+  viewer.addEventListener('click', e => {
+    if (e.target.closest('.nav-arrow,.mode-btn,.dot')) return;
+    const r = viewer.getBoundingClientRect(), x = e.clientX - r.left;
+    if (x < r.width * 0.25) prev(); else if (x > r.width * 0.75) next();
+  });
+  function setMode(m) { mode = m; singleBtn.classList.toggle('active', m === 'single'); spreadBtn.classList.toggle('active', m === 'spread'); buildDots(); render(); }
+  singleBtn.addEventListener('click', () => setMode('single'));
+  spreadBtn.addEventListener('click', () => setMode('spread'));
+  function autoMode() { if (window.innerWidth < 900) { setMode('single'); spreadBtn.style.display = 'none'; } else { spreadBtn.style.display = ''; } }
+  window.addEventListener('resize', autoMode);
+  autoMode(); buildDots(); render();
+})();
+</script>
+</body>
+</html>

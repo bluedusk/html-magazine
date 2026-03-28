@@ -1,8 +1,8 @@
 # HTML Magazine
 
-Transform plain text, markdown, or HTML into stunning paginated magazine pages — with editorial voice rewriting, sourced photography, and print-quality typography.
+Transform plain text, markdown, or HTML into stunning paginated magazine pages — with editorial voice rewriting, sourced photography, and print-quality typography. Share via Vercel, export to PDF.
 
-Works with **Claude Code**, **Gemini CLI**, **GitHub Copilot**, and **OpenAI Codex**.
+**[Live Demo](https://samples-six-omega.vercel.app)** | Works with **Claude Code**, **Gemini CLI**, **GitHub Copilot**, and **OpenAI Codex**
 
 ## Install
 

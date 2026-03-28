@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOIR — Fashion & Culture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.pexels.com">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,700;1,900&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   NOIR MAGAZINE — Design Tokens
+   Inspired by Vogue, Harper's Bazaar, W Magazine
+   Style: Exaggerated Minimalism + Monochrome Editorial
+   ============================================================ */
+:root {
+  --black: #000;
+  --white: #fff;
+  --paper: #F8F6F3;
+  --ink: #0A0A0A;
+  --gray-100: #F2F0ED;
+  --gray-200: #E5E2DD;
+  --gray-400: #999;
+  --gray-600: #555;
+  --accent: #C8102E; /* Vogue red */
+  --font-display: 'Playfair Display', 'Georgia', serif;
+  --font-ui: 'Inter', -apple-system, sans-serif;
+  --pad: clamp(24px, 3.5vw, 44px);
+  --ratio: 210 / 297;
+}
+
+/* ============================================================
+   Reset
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-ui);
+  background: #0A0A0A;
+  color: var(--ink);
+  overflow: hidden;
+  height: 100dvh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ============================================================
+   Top Bar
+   ============================================================ */
+.topbar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #666;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.topbar-left { min-width: 80px; font-variant-numeric: tabular-nums; }
+.topbar-center { display: flex; gap: 4px; }
+.topbar-right { min-width: 80px; text-align: right; }
+.topbar-brand {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  color: #888;
+}
+
+.mode-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #666;
+  padding: 4px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.mode-btn:hover { border-color: rgba(255,255,255,0.25); color: #aaa; }
+.mode-btn.active { background: rgba(255,255,255,0.08); color: #ccc; border-color: rgba(255,255,255,0.2); }
+.mode-btn svg { width: 14px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+/* ============================================================
+   Viewer
+   ============================================================ */
+.viewer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 12px 52px;
+}
+
+/* ============================================================
+   Spread Container
+   ============================================================ */
+.spread {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  height: 100%;
+  max-height: calc(100dvh - 44px - 40px - 24px);
+  /* Page turns handled by GSAP */
+}
+.spread.is-spread::after {
+  content: '';
+  position: absolute;
+  top: 2%;
+  bottom: 2%;
+  left: 50%;
+  width: 50px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.3) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ============================================================
+   Page
+   ============================================================ */
+.page {
+  aspect-ratio: var(--ratio);
+  height: 100%;
+  max-height: calc(100dvh - 44px - 40px - 24px);
+  background: var(--paper);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: none;
+  flex-direction: column;
+}
+.page.visible { display: flex; }
+.page.single-page {
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2), 0 12px 40px rgba(0,0,0,0.25), 0 24px 70px rgba(0,0,0,0.15);
+}
+.page.left-page {
+  box-shadow: -6px 2px 16px rgba(0,0,0,0.15), -10px 4px 35px rgba(0,0,0,0.12), inset -25px 0 35px -25px rgba(0,0,0,0.07);
+  border-right: 1px solid rgba(0,0,0,0.04);
+}
+.page.right-page {
+  box-shadow: 6px 2px 16px rgba(0,0,0,0.15), 10px 4px 35px rgba(0,0,0,0.12), inset 25px 0 35px -25px rgba(0,0,0,0.07);
+  border-left: 1px solid rgba(0,0,0,0.04);
+}
+.page-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Folio (running footer) */
+.folio {
+  position: absolute;
+  bottom: 14px;
+  left: var(--pad);
+  right: var(--pad);
+  display: flex;
+  justify-content: space-between;
+  font-size: 7px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  z-index: 3;
+}
+.folio-dark { color: rgba(255,255,255,0.35); }
+
+/* ============================================================
+   Nav Arrows
+   ============================================================ */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.25);
+  cursor: pointer;
+  padding: 14px 6px;
+  transition: color 0.2s;
+  font-size: 26px;
+  font-weight: 200;
+}
+.nav-arrow:hover { color: rgba(255,255,255,0.6); }
+.nav-arrow.disabled { opacity: 0.1; pointer-events: none; }
+.nav-prev { left: 8px; }
+.nav-next { right: 8px; }
+
+/* ============================================================
+   Bottom Bar (dots)
+   ============================================================ */
+.bottombar {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  transition: all 0.3s;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+.dot.active { background: rgba(255,255,255,0.55); transform: scale(1.4); }
+.dot:hover { background: rgba(255,255,255,0.3); }
+
+/* ============================================================
+   COVER (Vogue-inspired)
+   ============================================================ */
+.cover-img {
+  position: absolute;
+  inset: 0;
+  background: url('https://images.pexels.com/photos/30797547/pexels-photo-30797547.jpeg?auto=compress&cs=tinysrgb&w=1200') center top / cover no-repeat;
+}
+.cover-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 30%),
+    linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, transparent 20%);
+}
+.cover-inner {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--pad);
+  color: var(--white);
+}
+.cover-masthead {
+  font-family: var(--font-display);
+  font-size: clamp(52px, 10vw, 90px);
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-align: center;
+  line-height: 0.9;
+  text-shadow: 0 2px 40px rgba(0,0,0,0.3);
+}
+.cover-tagline {
+  text-align: center;
+  font-size: 8px;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  margin-top: 6px;
+  opacity: 0.65;
+}
+.cover-bottom {
+  margin-top: auto;
+  text-align: center;
+}
+.cover-headlines {
+  font-family: var(--font-display);
+  font-size: clamp(11px, 1.6vw, 15px);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  line-height: 2.2;
+  text-shadow: 0 1px 20px rgba(0,0,0,0.4);
+}
+.cover-headlines strong {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.cover-issue {
+  font-size: 7px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-top: 14px;
+  opacity: 0.45;
+}
+.cover-frame {
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ============================================================
+   EDITOR'S LETTER
+   ============================================================ */
+.letter {
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.label {
+  font-size: 7px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.letter h2 {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.35;
+  margin-bottom: 16px;
+}
+.letter-body {
+  font-size: clamp(10.5px, 1.3vw, 12.5px);
+  line-height: 1.8;
+  color: var(--gray-600);
+  flex: 1;
+}
+.letter-body p { margin-bottom: 10px; }
+.rule { width: 32px; height: 1px; background: var(--ink); margin: 14px 0; }
+.sig {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(15px, 2vw, 20px);
+}
+.sig-title {
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  margin-top: 3px;
+}
+
+/* ============================================================
+   CONTENTS
+   ============================================================ */
+.toc {
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.toc h2 {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4.5vw, 42px);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  margin-bottom: 24px;
+}
+.toc-list { list-style: none; flex: 1; }
+.toc-item {
+  display: flex;
+  align-items: baseline;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--gray-200);
+  gap: 10px;
+}
+.toc-num {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.8vw, 28px);
+  font-weight: 300;
+  color: var(--gray-400);
+  min-width: 32px;
+}
+.toc-title {
+  font-family: var(--font-display);
+  font-size: clamp(12px, 1.7vw, 15px);
+  font-weight: 500;
+}
+.toc-desc {
+  font-size: clamp(8px, 1vw, 10px);
+  color: var(--gray-400);
+  font-style: italic;
+  margin-top: 1px;
+}
+.toc-pg {
+  font-size: 9px;
+  color: var(--gray-400);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   FEATURE IMAGE PAGES (full-bleed photo)
+   ============================================================ */
+.feat-img {
+  position: absolute;
+  inset: 0;
+}
+.feat-img.cover-model {
+  background: url('https://images.pexels.com/photos/9927983/pexels-photo-9927983.jpeg?auto=compress&cs=tinysrgb&w=1200') center 15% / cover no-repeat;
+}
+.feat-img.runway-shot {
+  background: url('https://images.pexels.com/photos/18650819/pexels-photo-18650819.jpeg?auto=compress&cs=tinysrgb&w=1200') center / cover no-repeat;
+}
+.feat-img.beauty-close {
+  background: url('https://images.pexels.com/photos/3861592/pexels-photo-3861592.jpeg?auto=compress&cs=tinysrgb&w=1200') center / cover no-repeat;
+}
+.feat-img.street-hero {
+  background: url('https://images.pexels.com/photos/30096474/pexels-photo-30096474.jpeg?auto=compress&cs=tinysrgb&w=1200') center top / cover no-repeat;
+}
+.feat-img.next-issue {
+  background: url('https://images.pexels.com/photos/29940495/pexels-photo-29940495.jpeg?auto=compress&cs=tinysrgb&w=1200') center / cover no-repeat;
+}
+
+.feat-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.1) 35%, transparent 55%);
+}
+.feat-overlay {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--pad);
+  color: var(--white);
+}
+.feat-overlay h2 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 4.5vw, 44px);
+  font-weight: 700;
+  line-height: 1.1;
+  text-shadow: 0 2px 30px rgba(0,0,0,0.5);
+}
+.feat-overlay .byline {
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-top: 8px;
+  opacity: 0.6;
+}
+
+/* ============================================================
+   ARTICLE TEXT PAGE
+   ============================================================ */
+.article {
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.article-cols {
+  columns: 2;
+  column-gap: 22px;
+  font-size: clamp(10px, 1.25vw, 12.5px);
+  line-height: 1.75;
+  color: var(--gray-600);
+  flex: 1;
+  overflow: hidden;
+}
+.article-cols p { margin-bottom: 9px; text-align: justify; hyphens: auto; }
+.drop-cap::first-letter {
+  font-family: var(--font-display);
+  font-size: 4em;
+  float: left;
+  line-height: 0.78;
+  padding-right: 8px;
+  padding-top: 5px;
+  color: var(--ink);
+  font-weight: 900;
+}
+.pull-quote {
+  column-span: all;
+  text-align: center;
+  padding: 14px 8px;
+  margin: 12px 0;
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(14px, 2.2vw, 20px);
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+/* ============================================================
+   BEAUTY PAGE
+   ============================================================ */
+.beauty-grid {
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 10px;
+}
+.beauty-grid-images {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 6px;
+}
+.beauty-cell {
+  position: relative;
+  overflow: hidden;
+  background: var(--gray-100);
+}
+.beauty-cell.tall { grid-row: span 2; }
+.beauty-cell img, .beauty-cell-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.beauty-cell-img {
+  background-size: cover;
+  background-position: center;
+}
+.beauty-cell-img.img1 { background-image: url('https://images.pexels.com/photos/5693815/pexels-photo-5693815.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.beauty-cell-img.img2 { background-image: url('https://images.pexels.com/photos/17570989/pexels-photo-17570989.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.beauty-cell-img.img3 { background-image: url('https://images.pexels.com/photos/30706568/pexels-photo-30706568.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.beauty-caption {
+  font-size: clamp(9px, 1.1vw, 10.5px);
+  color: var(--gray-400);
+  font-style: italic;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   TREND REPORT / LIST PAGE
+   ============================================================ */
+.trend-page {
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.trend-page h2 {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 400;
+  margin-bottom: 4px;
+}
+.trend-intro {
+  font-size: clamp(9.5px, 1.2vw, 11.5px);
+  color: var(--gray-400);
+  font-style: italic;
+  margin-bottom: 14px;
+}
+.trend-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 22px;
+  overflow: hidden;
+}
+.trend-item h4 {
+  font-family: var(--font-display);
+  font-size: clamp(12px, 1.6vw, 15px);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.trend-item p {
+  font-size: clamp(9.5px, 1.1vw, 11px);
+  line-height: 1.65;
+  color: var(--gray-600);
+}
+.trend-num {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 300;
+  color: var(--gray-200);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+/* ============================================================
+   STREET STYLE GRID
+   ============================================================ */
+.street-grid-page {
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.street-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1.3fr 1fr;
+  gap: 6px;
+}
+.street-cell {
+  position: relative;
+  overflow: hidden;
+}
+.street-cell-img {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}
+.street-cell-img.s1 { background-image: url('https://images.pexels.com/photos/33045438/pexels-photo-33045438.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.street-cell-img.s2 { background-image: url('https://images.pexels.com/photos/262039/pexels-photo-262039.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.street-cell-img.s3 { background-image: url('https://images.pexels.com/photos/5616748/pexels-photo-5616748.jpeg?auto=compress&cs=tinysrgb&w=600'); background-position: center top; }
+.street-cell-img.s4 { background-image: url('https://images.pexels.com/photos/9502500/pexels-photo-9502500.jpeg?auto=compress&cs=tinysrgb&w=600'); }
+.street-cell-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 6px 8px;
+  background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+  color: white;
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   DESIGNER SPOTLIGHT PAGE
+   ============================================================ */
+.spotlight {
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.spotlight h2 {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 400;
+  margin-bottom: 2px;
+}
+.spotlight-sub {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(12px, 1.6vw, 15px);
+  color: var(--gray-400);
+  margin-bottom: 12px;
+}
+.spotlight-body {
+  columns: 2;
+  column-gap: 22px;
+  font-size: clamp(10px, 1.2vw, 12px);
+  line-height: 1.75;
+  color: var(--gray-600);
+  flex: 1;
+  overflow: hidden;
+}
+.spotlight-body p { margin-bottom: 8px; text-align: justify; hyphens: auto; }
+.spotlight-quote {
+  column-span: all;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(13px, 1.8vw, 17px);
+  text-align: center;
+  padding: 12px 0;
+  margin: 8px 0;
+  color: var(--ink);
+  border-top: 1px solid var(--gray-200);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+/* ============================================================
+   NEXT ISSUE / PREVIEW
+   ============================================================ */
+.preview {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.preview-img {
+  flex: 1;
+  position: relative;
+}
+.preview-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--paper) 0%, transparent 35%);
+}
+.preview-content {
+  position: relative;
+  z-index: 2;
+  padding: 0 var(--pad) var(--pad);
+  text-align: center;
+}
+.preview-content h2 {
+  font-family: var(--font-display);
+  font-size: clamp(16px, 2.4vw, 22px);
+  font-weight: 400;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+.preview-content p {
+  font-size: clamp(9.5px, 1.1vw, 11px);
+  line-height: 1.7;
+  color: var(--gray-600);
+  max-width: 85%;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   BACK COVER
+   ============================================================ */
+.back-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--pad);
+  background: var(--ink);
+  color: var(--white);
+  text-align: center;
+}
+.back-logo {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 5vw, 44px);
+  letter-spacing: 0.2em;
+  font-weight: 400;
+}
+.back-tagline {
+  font-size: 7px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  opacity: 0.3;
+  margin-top: 6px;
+  margin-bottom: 28px;
+}
+.back-rule { width: 20px; height: 1px; background: rgba(255,255,255,0.15); margin-bottom: 28px; }
+.back-info {
+  font-size: 7px;
+  letter-spacing: 0.15em;
+  line-height: 2.4;
+  opacity: 0.2;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 768px) {
+  .viewer { padding: 8px 10px; }
+  .mode-btn.spread-btn { display: none; }
+  :root { --pad: 18px; }
+  .article-cols, .spotlight-body { columns: 1; }
+  .trend-grid { grid-template-columns: 1fr; }
+  .cover-masthead { letter-spacing: 0.12em; }
+}
+/* Grid cell hover zoom */
+.beauty-cell .beauty-cell-img,
+.street-cell .street-cell-img { transition: transform 0.6s cubic-bezier(0.25,0.1,0.25,1); }
+.beauty-cell:hover .beauty-cell-img,
+.street-cell:hover .street-cell-img { transform: scale(1.06); }
+
+@media (prefers-reduced-motion: reduce) {
+  .spread { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== TOP BAR ==================== -->
+<div class="topbar">
+  <div class="topbar-left"><span id="pageNum">1 / 12</span></div>
+  <div class="topbar-center">
+    <button class="mode-btn single-btn active" id="singleBtn" aria-label="Single page">
+      <svg viewBox="0 0 14 12"><rect x="2.5" y="0.5" width="9" height="11" rx="1"/></svg> Single
+    </button>
+    <button class="mode-btn spread-btn" id="spreadBtn" aria-label="Spread view">
+      <svg viewBox="0 0 14 12"><rect x="0.5" y="0.5" width="5.5" height="11" rx="1"/><rect x="8" y="0.5" width="5.5" height="11" rx="1"/></svg> Spread
+    </button>
+  </div>
+  <div class="topbar-right"><span class="topbar-brand">NOIR</span></div>
+</div>
+
+<!-- ==================== VIEWER ==================== -->
+<div class="viewer" id="viewer">
+  <button class="nav-arrow nav-prev" id="prevBtn" aria-label="Previous">&#8249;</button>
+  <button class="nav-arrow nav-next" id="nextBtn" aria-label="Next">&#8250;</button>
+
+  <div class="spread" id="spread">
+
+    <!-- PAGE 0: COVER -->
+    <div class="page" data-page="0">
+      <div class="page-inner">
+        <div class="cover-img"></div>
+        <div class="cover-frame"></div>
+        <div class="cover-inner">
+          <div class="cover-masthead">NOIR</div>
+          <div class="cover-tagline">Fashion &amp; Culture</div>
+          <div class="cover-bottom">
+            <div class="cover-headlines">
+              <strong>The New Silhouette</strong><br>
+              Redefining Power Dressing<br>
+              <strong>Beauty Decoded</strong> &middot; Street Style: Paris<br>
+              The Designer Who Sees the Future
+            </div>
+            <div class="cover-issue">Autumn / Winter 2026 &middot; Issue 91 &middot; &pound;8.90</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 1: EDITOR'S LETTER -->
+    <div class="page" data-page="1">
+      <div class="page-inner letter">
+        <div class="label">Letter from the Editor</div>
+        <h2>On the Courage<br>of Getting Dressed</h2>
+        <div class="rule"></div>
+        <div class="letter-body">
+          <p>Dear Reader,</p>
+          <p>Fashion, at its most honest, is an act of defiance. Every morning we stand before the mirror and make a declaration &mdash; about who we are, who we wish to become, what we refuse to accept. It is the most democratic art form: no gallery required, no admission fee.</p>
+          <p>This issue celebrates the women and men who understand this instinctively. The designers who strip a garment to its essence and find, in that absence, something luminous. The models who bring more to a photograph than bone structure &mdash; who bring weather, atmosphere, a kind of electric stillness.</p>
+          <p>We travelled to Paris for the collections and found a city rethinking everything. Silhouettes are sharper. Colour has returned, but selectively, wielded like a scalpel rather than splashed like paint. There is a new discipline in the air, and it is thrilling.</p>
+          <p>Dress bravely.</p>
+        </div>
+        <div class="rule"></div>
+        <div class="sig">Camille Renard</div>
+        <div class="sig-title">Editor-in-Chief</div>
+      </div>
+      <div class="folio"><span>Noir</span><span>2</span></div>
+    </div>
+
+    <!-- PAGE 2: CONTENTS -->
+    <div class="page" data-page="2">
+      <div class="page-inner toc">
+        <div class="label">Autumn / Winter 2026</div>
+        <h2>Contents</h2>
+        <ul class="toc-list">
+          <li class="toc-item">
+            <span class="toc-num">04</span>
+            <div>
+              <div class="toc-title">The New Silhouette</div>
+              <div class="toc-desc">How power dressing evolved beyond the shoulder pad</div>
+            </div>
+            <span class="toc-pg">p.4</span>
+          </li>
+          <li class="toc-item">
+            <span class="toc-num">06</span>
+            <div>
+              <div class="toc-title">Beauty Decoded</div>
+              <div class="toc-desc">The science and art of modern skincare</div>
+            </div>
+            <span class="toc-pg">p.6</span>
+          </li>
+          <li class="toc-item">
+            <span class="toc-num">08</span>
+            <div>
+              <div class="toc-title">Runway Report</div>
+              <div class="toc-desc">The five looks that defined the season</div>
+            </div>
+            <span class="toc-pg">p.8</span>
+          </li>
+          <li class="toc-item">
+            <span class="toc-num">09</span>
+            <div>
+              <div class="toc-title">Street Style: Paris</div>
+              <div class="toc-desc">What the front row wore when nobody was watching</div>
+            </div>
+            <span class="toc-pg">p.9</span>
+          </li>
+          <li class="toc-item">
+            <span class="toc-num">10</span>
+            <div>
+              <div class="toc-title">The Quiet Radical</div>
+              <div class="toc-desc">A designer reshaping fashion from the inside</div>
+            </div>
+            <span class="toc-pg">p.10</span>
+          </li>
+          <li class="toc-item">
+            <span class="toc-num">11</span>
+            <div>
+              <div class="toc-title">Coming Next</div>
+              <div class="toc-desc">Spring/Summer 2027 preview</div>
+            </div>
+            <span class="toc-pg">p.11</span>
+          </li>
+        </ul>
+      </div>
+      <div class="folio"><span>Issue 91</span><span>3</span></div>
+    </div>
+
+    <!-- PAGE 3: NEW SILHOUETTE (IMAGE) -->
+    <div class="page" data-page="3">
+      <div class="page-inner">
+        <div class="feat-img cover-model"></div>
+        <div class="feat-overlay">
+          <div class="label" style="color:rgba(255,255,255,0.45)">Fashion</div>
+          <h2>The New<br>Silhouette</h2>
+          <div class="byline">Styled by Ana Kovacs &middot; Photographed by Built By King</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 4: NEW SILHOUETTE (TEXT) -->
+    <div class="page" data-page="4">
+      <div class="page-inner article">
+        <div class="label">The New Silhouette</div>
+        <div class="article-cols">
+          <p class="drop-cap">Power dressing used to mean armour. Shoulder pads like battlements, waists cinched tight enough to signal control, heels that announced your arrival three rooms before you entered. It was clothing as warfare, and for a time it worked. But something has shifted.</p>
+          <p>The new silhouette is quieter. It whispers instead of shouts. At Celine, Hedi Slimane showed coats that fell just so &mdash; no structure, no scaffolding, just the most impeccable cut falling against the body like water finding its level. At The Row, Mary-Kate and Ashley Olsen continued their decade-long argument that the most powerful thing a woman can wear is a perfectly proportioned nothing.</p>
+          <div class="pull-quote">&ldquo;The strongest silhouette is the one that looks like it required no effort at all &mdash; and took a hundred fittings to achieve.&rdquo;</div>
+          <p>This is not minimalism in the old sense &mdash; the cold, colourless austerity of the nineties. There is warmth here. Fabrics are richer: double-faced cashmere, boiled wool that feels like something between a cloud and a shield. The palette has depth: not just black and white, but storm grey, bitter chocolate, the deep green of wet moss.</p>
+          <p>What makes this shift meaningful is its refusal to perform. The new power dresser does not need you to notice. She is dressed for herself &mdash; for the feeling of fabric against skin, for the architecture of a sleeve that falls at exactly the right angle. It is fashion as private pleasure, as quiet rebellion against an age of noise.</p>
+          <p>And perhaps that is the point. In a world that demands constant visibility, the most radical act is to dress beautifully and say nothing at all.</p>
+        </div>
+      </div>
+      <div class="folio"><span>Noir &middot; Fashion</span><span>5</span></div>
+    </div>
+
+    <!-- PAGE 5: BEAUTY (IMAGE) -->
+    <div class="page" data-page="5">
+      <div class="page-inner">
+        <div class="feat-img beauty-close"></div>
+        <div class="feat-overlay">
+          <div class="label" style="color:rgba(255,255,255,0.45)">Beauty</div>
+          <h2>Beauty<br>Decoded</h2>
+          <div class="byline">Words by Lena Marchand</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 6: BEAUTY GRID + TEXT -->
+    <div class="page" data-page="6">
+      <div class="page-inner beauty-grid">
+        <div class="label">Beauty</div>
+        <div class="beauty-grid-images">
+          <div class="beauty-cell tall"><div class="beauty-cell-img img1"></div></div>
+          <div class="beauty-cell"><div class="beauty-cell-img img2"></div></div>
+          <div class="beauty-cell"><div class="beauty-cell-img img3"></div></div>
+        </div>
+        <div class="beauty-caption">
+          Clockwise from left: The new matte lip at Dior; backstage at Valentino; evening drama redefined.
+          The season's message is clear &mdash; less product, more intent.
+        </div>
+      </div>
+      <div class="folio"><span>Noir &middot; Beauty</span><span>7</span></div>
+    </div>
+
+    <!-- PAGE 7: RUNWAY REPORT (IMAGE) -->
+    <div class="page" data-page="7">
+      <div class="page-inner">
+        <div class="feat-img runway-shot"></div>
+        <div class="feat-overlay">
+          <div class="label" style="color:rgba(255,255,255,0.45)">Runway Report</div>
+          <h2>Five Looks<br>That Defined<br>the Season</h2>
+          <div class="byline">Paris Fashion Week A/W 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 8: STREET STYLE GRID -->
+    <div class="page" data-page="8">
+      <div class="page-inner street-grid-page">
+        <div class="label">Street Style &middot; Paris</div>
+        <div class="street-grid">
+          <div class="street-cell"><div class="street-cell-img s1"></div><div class="street-cell-caption">Outside Chlo&eacute;</div></div>
+          <div class="street-cell"><div class="street-cell-img s2"></div><div class="street-cell-caption">Front row at Dior</div></div>
+          <div class="street-cell"><div class="street-cell-img s3"></div><div class="street-cell-caption">Rue Saint-Honor&eacute;</div></div>
+          <div class="street-cell"><div class="street-cell-img s4"></div><div class="street-cell-caption">Tuileries Garden</div></div>
+        </div>
+        <p style="font-size:clamp(8px,1vw,10px);color:var(--gray-400);font-style:italic;text-align:center;margin-top:6px">
+          &ldquo;Style is knowing who you are and not having to think too hard about it.&rdquo;
+        </p>
+      </div>
+      <div class="folio"><span>Noir &middot; Street Style</span><span>9</span></div>
+    </div>
+
+    <!-- PAGE 9: DESIGNER SPOTLIGHT -->
+    <div class="page" data-page="9">
+      <div class="page-inner spotlight">
+        <div class="label">Profile</div>
+        <h2>The Quiet Radical</h2>
+        <div class="spotlight-sub">How Léa Dubois is reshaping fashion without raising her voice</div>
+        <div class="rule"></div>
+        <div class="spotlight-body">
+          <p class="drop-cap">In an industry addicted to spectacle, L&eacute;a Dubois is an anomaly. Her atelier in the 11th arrondissement has no sign on the door. Her Instagram has forty-three posts. Her runway shows last exactly eleven minutes, with no music, no celebrity front row, no after-party.</p>
+          <p>And yet every major buyer in Paris clears their schedule for her presentations. &ldquo;She shows clothes the way a poet reads verse,&rdquo; says Vogue&rsquo;s fashion director. &ldquo;There is nothing extra. Every stitch earns its place.&rdquo;</p>
+          <div class="spotlight-quote">&ldquo;I don&rsquo;t design for attention. I design for the moment a woman catches her reflection and thinks &mdash; yes, this is exactly right.&rdquo;</div>
+          <p>Dubois trained at the &Eacute;cole de la Chambre Syndicale, then spent seven years at Herm&egrave;s learning what she calls &ldquo;the discipline of restraint.&rdquo; Her own label, launched in 2022, has grown entirely by word of mouth.</p>
+          <p>Her signature is the &ldquo;living seam&rdquo; &mdash; a construction technique that allows fabric to move independently of the body, creating silhouettes that shift with each step. &ldquo;A garment should breathe,&rdquo; she says. &ldquo;It should have its own weather.&rdquo;</p>
+          <p>This season&rsquo;s collection, titled <em>Encore</em>, featured twelve looks in shades of stone, ink, and a single devastating red. The fashion press called it the best debut show in a decade. Dubois simply nodded and returned to her cutting table.</p>
+        </div>
+      </div>
+      <div class="folio"><span>Noir &middot; Profile</span><span>10</span></div>
+    </div>
+
+    <!-- PAGE 10: NEXT ISSUE -->
+    <div class="page" data-page="10">
+      <div class="page-inner preview">
+        <div class="preview-img">
+          <div class="feat-img next-issue"></div>
+        </div>
+        <div class="preview-content">
+          <div class="label">Coming Next Issue</div>
+          <h2>Spring / Summer 2027</h2>
+          <p>Colour returns with a vengeance. We preview Milan&rsquo;s boldest season in a decade, interview the architect turning shipping containers into fashion week venues, and ask: is the handbag dead? Plus &mdash; the definitive guide to summer dressing, Scandinavia&rsquo;s new design wave, and twenty pages of pure escapism.</p>
+          <div class="rule" style="margin: 12px auto;"></div>
+          <p style="font-size:clamp(7px,0.9vw,9px);color:var(--gray-400);letter-spacing:0.15em;text-transform:uppercase">Spring/Summer 2027 &middot; Issue 92 &middot; On Stands March 28</p>
+        </div>
+      </div>
+      <div class="folio"><span>Noir</span><span>11</span></div>
+    </div>
+
+    <!-- PAGE 11: BACK COVER -->
+    <div class="page" data-page="11">
+      <div class="page-inner back-cover">
+        <div class="back-logo">NOIR</div>
+        <div class="back-tagline">Fashion &amp; Culture</div>
+        <div class="back-rule"></div>
+        <div class="back-info">
+          Published Quarterly<br>
+          Paris &middot; London &middot; Milan &middot; New York &middot; Tokyo<br><br>
+          Issue 91 &middot; Autumn/Winter 2026<br>
+          &copy; 2026 Noir Media Group
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /spread -->
+</div><!-- /viewer -->
+
+<!-- ==================== BOTTOM BAR ==================== -->
+<div class="bottombar" id="bottombar"></div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+(function() {
+  'use strict';
+
+  const pages = [...document.querySelectorAll('.page')];
+  const spread = document.getElementById('spread');
+  const pageNum = document.getElementById('pageNum');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const singleBtn = document.getElementById('singleBtn');
+  const spreadBtn = document.getElementById('spreadBtn');
+  const bottombar = document.getElementById('bottombar');
+  const viewer = document.getElementById('viewer');
+  const total = pages.length;
+  const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let current = 0, mode = 'single', turning = false;
+
+  // ---- Pagination ----
+  function buildDots() {
+    bottombar.innerHTML = '';
+    getViewList().forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'dot';
+      d.setAttribute('aria-label', 'Page ' + (i + 1));
+      d.addEventListener('click', () => goToView(i));
+      bottombar.appendChild(d);
+    });
+  }
+
+  function getViewList() {
+    if (mode === 'single') return pages.map((_, i) => [i]);
+    const v = [[0]];
+    for (let i = 1; i < total - 1; i += 2) {
+      const p = [i]; if (i + 1 < total) p.push(i + 1); v.push(p);
+    }
+    if (total % 2 === 0) v.push([total - 1]);
+    return v;
+  }
+
+  function vi() { return getViewList().findIndex(v => v.includes(current)); }
+
+  function goToView(idx) {
+    const views = getViewList();
+    if (idx < 0 || idx >= views.length) return;
+    const t = views[idx][0];
+    if (t === current) return;
+    pageTurn(t, t > current ? 'fwd' : 'back');
+  }
+
+  // ---- Render (show/hide pages, update UI) ----
+  function render() {
+    const views = getViewList(), v = vi(), visible = views[v] || [0];
+    pages.forEach(p => p.classList.remove('visible', 'single-page', 'left-page', 'right-page'));
+    const isSpread = mode === 'spread' && visible.length === 2;
+    spread.classList.toggle('is-spread', isSpread);
+    if (isSpread) {
+      pages[visible[0]].classList.add('visible', 'left-page');
+      pages[visible[1]].classList.add('visible', 'right-page');
+    } else {
+      pages[visible[0]].classList.add('visible', 'single-page');
+    }
+    pageNum.textContent = isSpread
+      ? (visible[0]+1)+'\u2013'+(visible[1]+1)+' / '+total
+      : (visible[0]+1)+' / '+total;
+    bottombar.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i === v));
+    prevBtn.classList.toggle('disabled', v === 0);
+    nextBtn.classList.toggle('disabled', v === views.length - 1);
+  }
+
+  // ============================================================
+  //  GSAP PAGE TURN — simulates lifting and flipping a page
+  //  No element animations. Content is static like print.
+  // ============================================================
+  async function pageTurn(target, dir) {
+    if (turning) return;
+    turning = true;
+
+    if (noMotion) { current = target; render(); turning = false; return; }
+
+    const fwd = dir === 'fwd';
+
+    // The current page lifts slightly and rotates away (like being turned)
+    await gsap.to(spread, {
+      rotationY: fwd ? -6 : 6,
+      xPercent: fwd ? -3 : 3,
+      opacity: 0.3,
+      scale: 0.98,
+      duration: 0.3,
+      ease: 'power2.in',
+      transformPerspective: 1200,
+      transformOrigin: fwd ? 'left center' : 'right center',
+    });
+
+    // Swap to new page (instant)
+    current = target;
+    render();
+
+    // New page arrives from the other side (like the page settling flat)
+    gsap.set(spread, {
+      rotationY: fwd ? 4 : -4,
+      xPercent: fwd ? 2 : -2,
+      opacity: 0.3,
+      scale: 0.99,
+    });
+
+    await gsap.to(spread, {
+      rotationY: 0,
+      xPercent: 0,
+      opacity: 1,
+      scale: 1,
+      duration: 0.35,
+      ease: 'power2.out',
+      transformPerspective: 1200,
+      transformOrigin: fwd ? 'right center' : 'left center',
+    });
+
+    turning = false;
+  }
+
+  // ---- Navigation ----
+  function next() { const v = getViewList(), i = vi(); if (i < v.length - 1) goToView(i + 1); }
+  function prev() { const i = vi(); if (i > 0) goToView(i - 1); }
+
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
+    if (e.key === 'Home') { e.preventDefault(); goToView(0); }
+    if (e.key === 'End') { e.preventDefault(); goToView(getViewList().length - 1); }
+  });
+
+  let tx = 0, ty = 0;
+  viewer.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+  viewer.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) dx < 0 ? next() : prev();
+  }, { passive: true });
+
+  viewer.addEventListener('click', e => {
+    if (e.target.closest('.nav-arrow,.mode-btn,.dot')) return;
+    const r = viewer.getBoundingClientRect(), x = e.clientX - r.left;
+    if (x < r.width * 0.25) prev(); else if (x > r.width * 0.75) next();
+  });
+
+  // ---- Mode toggle ----
+  function setMode(m) {
+    mode = m;
+    singleBtn.classList.toggle('active', m === 'single');
+    spreadBtn.classList.toggle('active', m === 'spread');
+    buildDots(); render();
+  }
+  singleBtn.addEventListener('click', () => setMode('single'));
+  spreadBtn.addEventListener('click', () => setMode('spread'));
+
+  function autoMode() {
+    if (window.innerWidth < 900) { setMode('single'); spreadBtn.style.display = 'none'; }
+    else { spreadBtn.style.display = ''; }
+  }
+  window.addEventListener('resize', autoMode);
+
+  // ---- Init ----
+  autoMode(); buildDots(); render();
+})();
+</script>
+</body>
+</html>

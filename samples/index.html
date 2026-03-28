@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Magazine — Sample Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Public+Sans:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js" defer></script>
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --bg: #08080a;
+  --bg-card: #111114;
+  --bg-card-hover: #18181c;
+  --surface: #1a1a1f;
+  --text: #e8e6e1;
+  --text-dim: #777;
+  --text-muted: #444;
+  --accent-red: #C8102E;
+  --accent-gold: #c9a96e;
+  --accent-teal: #2A6B6B;
+  --accent-yellow: #FFCC00;
+  --font-display: 'Libre Bodoni', Georgia, serif;
+  --font-ui: 'Public Sans', -apple-system, Helvetica, Arial, sans-serif;
+}
+
+/* ============================================================
+   RESET
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(200, 16, 46, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 30% 70%, rgba(201, 169, 110, 0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero-label {
+  font-family: var(--font-ui);
+  font-size: clamp(10px, 1.2vw, 13px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4em;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  opacity: 0;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 10vw, 140px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 0.9;
+  color: var(--text);
+  opacity: 0;
+}
+
+.hero-title em {
+  font-style: italic;
+  color: var(--accent-red);
+}
+
+.hero-sub {
+  font-family: var(--font-ui);
+  font-size: clamp(14px, 1.5vw, 18px);
+  font-weight: 300;
+  color: var(--text-dim);
+  margin-top: 24px;
+  letter-spacing: 0.08em;
+  opacity: 0;
+}
+
+.hero-line {
+  width: 1px;
+  height: 0;
+  background: var(--text-muted);
+  margin-top: 48px;
+}
+
+.hero-scroll {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--text-muted);
+  margin-top: 16px;
+  opacity: 0;
+}
+
+/* ============================================================
+   GALLERY
+   ============================================================ */
+.gallery {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(40px, 8vw, 100px) clamp(20px, 4vw, 60px);
+}
+
+.gallery-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: clamp(32px, 5vw, 64px);
+  border-bottom: 1px solid var(--surface);
+  padding-bottom: 16px;
+}
+
+.gallery-title {
+  font-family: var(--font-ui);
+  font-size: clamp(11px, 1.1vw, 13px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--text-dim);
+}
+
+.gallery-count {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+/* ============================================================
+   MAGAZINE CARDS
+   ============================================================ */
+.magazines {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: clamp(20px, 3vw, 40px);
+}
+
+.mag-card {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mag-card:hover {
+  transform: translateY(-4px);
+}
+
+.mag-card:hover .mag-cover {
+  transform: scale(1.03);
+}
+
+.mag-card:hover .mag-shine {
+  opacity: 1;
+}
+
+/* Cover */
+.mag-cover {
+  aspect-ratio: 210 / 297;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mag-cover-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(24px, 5%, 48px);
+  text-align: center;
+}
+
+/* Glossy shine effect on hover */
+.mag-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.05) 45%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 55%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Card info below cover */
+.mag-info {
+  padding: clamp(12px, 2vw, 20px) 0;
+}
+
+.mag-name {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.mag-desc {
+  font-family: var(--font-ui);
+  font-size: clamp(12px, 1.1vw, 14px);
+  color: var(--text-dim);
+  font-weight: 300;
+}
+
+.mag-tag {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding: 4px 10px;
+  border-radius: 2px;
+  margin-top: 8px;
+}
+
+/* ============================================================
+   INDIVIDUAL COVER STYLES
+   ============================================================ */
+
+/* NOIR — Fashion */
+.cover-noir {
+  background: #000;
+}
+.cover-noir .cover-masthead {
+  font-family: 'Libre Bodoni', Georgia, serif;
+  font-size: clamp(36px, 6vw, 56px);
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  color: #fff;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.cover-noir .cover-tagline {
+  font-family: var(--font-ui);
+  font-size: clamp(9px, 1vw, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: #555;
+}
+.cover-noir .cover-accent {
+  width: 30px;
+  height: 2px;
+  background: var(--accent-red);
+  margin: 16px auto;
+}
+.cover-noir .cover-issue {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: #333;
+  position: absolute;
+  bottom: clamp(16px, 3%, 28px);
+}
+
+/* WANDERLUST — Travel */
+.cover-wanderlust {
+  background: linear-gradient(160deg, #1a1612, #2a1f18, #1a1a1a);
+}
+.cover-wanderlust .cover-masthead {
+  font-family: 'Libre Bodoni', Georgia, serif;
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 400;
+  font-style: italic;
+  color: #F0EBE3;
+  margin-bottom: 8px;
+}
+.cover-wanderlust .cover-tagline {
+  font-family: var(--font-ui);
+  font-size: clamp(9px, 1vw, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: #B8432F;
+}
+.cover-wanderlust .cover-accent {
+  width: 40px;
+  height: 1px;
+  background: #9E7C2D;
+  margin: 14px auto;
+}
+.cover-wanderlust .cover-issue {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: #555;
+  position: absolute;
+  bottom: clamp(16px, 3%, 28px);
+}
+
+/* TERRA — NatGeo */
+.cover-terra {
+  background: #0A0A0A;
+  border: 3px solid var(--accent-yellow);
+}
+.cover-terra .cover-border-inner {
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(255, 204, 0, 0.2);
+  pointer-events: none;
+}
+.cover-terra .cover-masthead {
+  font-family: var(--font-ui);
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #fff;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.cover-terra .cover-tagline {
+  font-family: var(--font-ui);
+  font-size: clamp(9px, 1vw, 11px);
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  color: var(--accent-yellow);
+  text-transform: uppercase;
+}
+.cover-terra .cover-issue {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: #555;
+  position: absolute;
+  bottom: clamp(16px, 3%, 28px);
+}
+
+/* ============================================================
+   TAG COLORS
+   ============================================================ */
+.tag-fashion { background: rgba(200, 16, 46, 0.15); color: var(--accent-red); }
+.tag-travel { background: rgba(184, 67, 47, 0.15); color: #B8432F; }
+.tag-nature { background: rgba(255, 204, 0, 0.15); color: var(--accent-yellow); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  text-align: center;
+  padding: clamp(40px, 6vw, 80px) 20px;
+  border-top: 1px solid var(--surface);
+  margin-top: clamp(40px, 6vw, 80px);
+}
+
+.footer-text {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+.footer-link {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-link:hover { color: var(--text); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 480px) {
+  .magazines {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="hero">
+  <div class="hero-label">Sample Gallery</div>
+  <h1 class="hero-title">HTML<em>Magazine</em></h1>
+  <p class="hero-sub">AI-generated editorial pages you can flip through</p>
+  <div class="hero-line"></div>
+  <div class="hero-scroll">Scroll</div>
+</section>
+
+<!-- ============================================================
+     GALLERY
+     ============================================================ -->
+<section class="gallery">
+  <div class="gallery-header">
+    <span class="gallery-title">Issues</span>
+    <span class="gallery-count">4 samples</span>
+  </div>
+
+  <div class="magazines">
+
+    <!-- NOIR -->
+    <a href="fashion.html" class="mag-card">
+      <div class="mag-cover">
+        <div class="mag-cover-bg cover-noir">
+          <div class="cover-masthead">Noir</div>
+          <div class="cover-accent"></div>
+          <div class="cover-tagline">Fashion & Culture</div>
+          <div class="cover-issue">Issue 01</div>
+        </div>
+        <div class="mag-shine"></div>
+      </div>
+      <div class="mag-info">
+        <div class="mag-name">Noir</div>
+        <div class="mag-desc">Monochrome editorial inspired by Vogue & Harper's Bazaar</div>
+        <span class="mag-tag tag-fashion">Fashion</span>
+      </div>
+    </a>
+
+    <!-- WANDERLUST -->
+    <a href="magazine.html" class="mag-card">
+      <div class="mag-cover">
+        <div class="mag-cover-bg cover-wanderlust">
+          <div class="cover-masthead">Wanderlust</div>
+          <div class="cover-accent"></div>
+          <div class="cover-tagline">Travel & Culture</div>
+          <div class="cover-issue">Issue 02</div>
+        </div>
+        <div class="mag-shine"></div>
+      </div>
+      <div class="mag-info">
+        <div class="mag-name">Wanderlust</div>
+        <div class="mag-desc">Warm editorial with terracotta and gold accents</div>
+        <span class="mag-tag tag-travel">Travel</span>
+      </div>
+    </a>
+
+    <!-- TERRA (animated) -->
+    <a href="natgeo.html" class="mag-card">
+      <div class="mag-cover">
+        <div class="mag-cover-bg cover-terra">
+          <div class="cover-border-inner"></div>
+          <div class="cover-masthead">Terra</div>
+          <div class="cover-tagline">Explore the Planet</div>
+          <div class="cover-issue">Issue 03</div>
+        </div>
+        <div class="mag-shine"></div>
+      </div>
+      <div class="mag-info">
+        <div class="mag-name">Terra</div>
+        <div class="mag-desc">National Geographic-inspired with GSAP animations</div>
+        <span class="mag-tag tag-nature">Nature</span>
+      </div>
+    </a>
+
+    <!-- TERRA STATIC -->
+    <a href="natgeo-static.html" class="mag-card">
+      <div class="mag-cover">
+        <div class="mag-cover-bg cover-terra">
+          <div class="cover-border-inner"></div>
+          <div class="cover-masthead">Terra</div>
+          <div class="cover-tagline">Static Edition</div>
+          <div class="cover-issue">Issue 03b</div>
+        </div>
+        <div class="mag-shine"></div>
+      </div>
+      <div class="mag-info">
+        <div class="mag-name">Terra — Static</div>
+        <div class="mag-desc">Same NatGeo layout without page-flip animations</div>
+        <span class="mag-tag tag-nature">Nature</span>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="footer">
+  <p class="footer-text">
+    Built with <a href="https://github.com/bluedusk/html-magazine" class="footer-link">html-magazine</a>
+    — a Claude Code plugin
+  </p>
+</footer>
+
+<!-- ============================================================
+     GSAP ANIMATIONS
+     ============================================================ -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof gsap === 'undefined') return;
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Hero entrance
+  const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+  heroTl
+    .to('.hero-label', {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      delay: 0.3,
+    })
+    .from('.hero-title', {
+      y: 60,
+      duration: 1,
+      ease: 'power4.out',
+    }, '-=0.5')
+    .to('.hero-title', {
+      opacity: 1,
+      duration: 0.8,
+    }, '-=0.8')
+    .to('.hero-sub', {
+      opacity: 1,
+      duration: 0.6,
+    }, '-=0.3')
+    .to('.hero-line', {
+      height: 60,
+      duration: 0.8,
+      ease: 'power2.inOut',
+    }, '-=0.2')
+    .to('.hero-scroll', {
+      opacity: 1,
+      duration: 0.5,
+    }, '-=0.3');
+
+  // Scroll indicator pulse
+  gsap.to('.hero-scroll', {
+    opacity: 0.3,
+    duration: 1.2,
+    repeat: -1,
+    yoyo: true,
+    ease: 'sine.inOut',
+    delay: 2.5,
+  });
+
+  // Magazine cards stagger entrance on scroll
+  const cards = gsap.utils.toArray('.mag-card');
+
+  cards.forEach((card, i) => {
+    gsap.to(card, {
+      opacity: 1,
+      y: 0,
+      duration: 0.7,
+      delay: i * 0.12,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: card,
+        start: 'top 85%',
+        once: true,
+      },
+    });
+  });
+
+  // Parallax on hover for covers
+  cards.forEach(card => {
+    const cover = card.querySelector('.mag-cover-bg');
+
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+      gsap.to(cover, {
+        rotateY: x * 6,
+        rotateX: -y * 6,
+        duration: 0.4,
+        ease: 'power2.out',
+        transformPerspective: 800,
+      });
+
+      // Move shine with cursor
+      const shine = card.querySelector('.mag-shine');
+      gsap.to(shine, {
+        background: `linear-gradient(${115 + x * 30}deg, transparent 30%, rgba(255,255,255,0.04) 45%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 55%, transparent 70%)`,
+        duration: 0.3,
+      });
+    });
+
+    card.addEventListener('mouseleave', () => {
+      gsap.to(cover, {
+        rotateY: 0,
+        rotateX: 0,
+        duration: 0.6,
+        ease: 'power3.out',
+      });
+    });
+  });
+});
+</script>
+
+</body>
+</html>

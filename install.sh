@@ -37,7 +37,7 @@ choice="${choice:-1}"
 installed=0
 
 # --- Helper: symlink skill into a directory ---
-install_skill() {
+install_skill_symlink() {
   local target_dir="$1"
   local label="$2"
   local link="$target_dir/$SKILL_NAME"
@@ -61,25 +61,60 @@ install_skill() {
   installed=$((installed + 1))
 }
 
-# --- Helper: install as Claude Code plugin ---
-install_claude_plugin() {
-  # Install dependency: ui-ux-pro-max
-  echo "  Checking dependency: ui-ux-pro-max..."
-  if claude plugin list 2>/dev/null | grep -qi "ui-ux-pro-max"; then
-    echo "  ✓ ui-ux-pro-max already installed"
-  else
-    echo "  ⚙ Installing ui-ux-pro-max..."
-    if claude plugin add ui-ux-pro-max 2>/dev/null; then
-      echo "  ✓ ui-ux-pro-max installed"
-    else
-      echo "  ⚠ Could not auto-install ui-ux-pro-max."
-      echo "    Please install manually: claude plugin add ui-ux-pro-max"
-    fi
-  fi
+# --- Helper: install ui-ux-pro-max for a given agent ---
+install_uiux_dependency() {
+  local agent="$1"
 
-  # Install html-magazine
+  case "$agent" in
+    claude)
+      if claude plugin list 2>/dev/null | grep -qi "ui-ux-pro-max"; then
+        echo "  ✓ ui-ux-pro-max already installed (Claude Code)"
+      else
+        echo "  ⚙ Installing ui-ux-pro-max for Claude Code..."
+        if claude plugin add ui-ux-pro-max 2>/dev/null; then
+          echo "  ✓ ui-ux-pro-max installed (Claude Code)"
+        else
+          echo "  ⚠ Could not auto-install ui-ux-pro-max for Claude Code."
+          echo "    Run manually: claude plugin add ui-ux-pro-max"
+        fi
+      fi
+      ;;
+    gemini|copilot|codex)
+      # Map agent name to uipro CLI name
+      local uipro_name="$agent"
+
+      # Check if already installed by looking for the skill directory
+      local skill_dir=""
+      case "$agent" in
+        gemini)  skill_dir="$HOME/.gemini/skills/ui-ux-pro-max" ;;
+        copilot) skill_dir=".github/skills/ui-ux-pro-max" ;;
+        codex)   skill_dir="$HOME/.codex/skills/ui-ux-pro-max" ;;
+      esac
+
+      if [ -n "$skill_dir" ] && [ -d "$skill_dir" ]; then
+        echo "  ✓ ui-ux-pro-max already installed ($agent)"
+      else
+        echo "  ⚙ Installing ui-ux-pro-max for $agent..."
+        if command -v npx &>/dev/null; then
+          if npx uipro-cli init --ai "$uipro_name" 2>/dev/null; then
+            echo "  ✓ ui-ux-pro-max installed ($agent)"
+          else
+            echo "  ⚠ Could not install ui-ux-pro-max for $agent."
+            echo "    Run manually: npx uipro-cli init --ai $uipro_name"
+          fi
+        else
+          echo "  ⚠ npx not found — cannot install ui-ux-pro-max for $agent."
+          echo "    Install Node.js, then run: npx uipro-cli init --ai $uipro_name"
+        fi
+      fi
+      ;;
+  esac
+}
+
+# --- Helper: install html-magazine as Claude Code plugin ---
+install_claude_plugin() {
   if claude plugin add "$REPO_DIR" 2>/dev/null; then
-    echo "  ✓ Claude Code plugin installed"
+    echo "  ✓ html-magazine installed (Claude Code plugin)"
   else
     echo "  ⚠ Could not auto-install. Run: claude plugin add $REPO_DIR"
   fi
@@ -94,23 +129,28 @@ if [ "$choice" = "1" ] || [ "$choice" = "3" ]; then
   echo ""
 
   for agent in "${agents[@]}"; do
+    echo "  ── $agent ──"
+
+    # Install dependency first
+    install_uiux_dependency "$agent"
+
+    # Install html-magazine
     case "$agent" in
       claude)
         install_claude_plugin
         ;;
       gemini)
-        install_skill "$HOME/.gemini/skills" "~/.gemini/skills (Gemini CLI)"
+        install_skill_symlink "$HOME/.gemini/skills" "~/.gemini/skills (Gemini CLI)"
         ;;
       copilot)
-        # Copilot has no user-level skills path
         echo "  ℹ Copilot — user-level not supported, use project-level"
         ;;
       codex)
-        install_skill "$HOME/.codex/skills" "~/.codex/skills (OpenAI Codex)"
+        install_skill_symlink "$HOME/.codex/skills" "~/.codex/skills (OpenAI Codex)"
         ;;
     esac
+    echo ""
   done
-  echo ""
 fi
 
 # --- Project-level installs ---
@@ -119,22 +159,28 @@ if [ "$choice" = "2" ] || [ "$choice" = "3" ]; then
   echo ""
 
   for agent in "${agents[@]}"; do
+    echo "  ── $agent ──"
+
+    # Install dependency first
+    install_uiux_dependency "$agent"
+
+    # Install html-magazine
     case "$agent" in
       claude)
         install_claude_plugin
         ;;
       gemini)
-        install_skill ".gemini/skills" ".gemini/skills (Gemini CLI)"
+        install_skill_symlink ".gemini/skills" ".gemini/skills (Gemini CLI)"
         ;;
       copilot)
-        install_skill ".github/skills" ".github/skills (GitHub Copilot)"
+        install_skill_symlink ".github/skills" ".github/skills (GitHub Copilot)"
         ;;
       codex)
-        install_skill ".codex/skills" ".codex/skills (OpenAI Codex)"
+        install_skill_symlink ".codex/skills" ".codex/skills (OpenAI Codex)"
         ;;
     esac
+    echo ""
   done
-  echo ""
 fi
 
 # --- Check optional dependencies ---

@@ -148,13 +148,25 @@ IMAGE SOURCING:
   Get URL: https://commons.wikimedia.org/w/api.php?action=query&titles={File:name}&prop=imageinfo&iiprop=url&iiurlwidth=1200&format=json
 - If images can't be sourced, use CSS-only visuals (gradients, patterns)
 
+BRANDING:
+- Add a small "Built with html-magazine" watermark in the bottom-right corner of the page
+- Fixed position, always visible, subtle and unobtrusive
+- "html-magazine" should be a link to https://github.com/bluedusk/html-magazine
+- Style: semi-transparent, small font (10-11px), sans-serif
+- Example CSS:
+  .branding { position: fixed; bottom: 12px; right: 16px; font-family: sans-serif;
+    font-size: 10px; color: rgba(255,255,255,0.3); z-index: 9999; letter-spacing: 0.05em; }
+  .branding a { color: inherit; text-decoration: none; }
+  .branding a:hover { color: rgba(255,255,255,0.6); }
+- Example HTML: <div class="branding">Built with <a href="https://github.com/bluedusk/html-magazine" target="_blank">html-magazine</a></div>
+
 CONSTRAINTS:
 - Single self-contained HTML file
 - No external dependencies (no CDN fonts, no external CSS/JS)
 - System font stacks only (Georgia, Helvetica Neue, Courier New families)
 - Must work offline (except sourced image URLs)
 - Responsive down to mobile
-- Print support via @media print
+- Print support via @media print (hide branding in print)
 ```
 
 ### 8. Save & Present

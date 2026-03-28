@@ -1,0 +1,17 @@
+{
+  "name": "html-magazine",
+  "owner": {
+    "name": "bluedusk"
+  },
+  "metadata": {
+    "description": "Transforms text content into stunning self-contained HTML magazine pages with a real paper-magazine feel — paginated, image-rich, and print-inspired typography."
+  },
+  "plugins": [
+    {
+      "name": "html-magazine",
+      "source": "./.",
+      "description": "Transforms text content into stunning self-contained HTML magazine pages with a real paper-magazine feel — paginated, image-rich, and print-inspired typography.",
+      "version": "1.0.0"
+    }
+  ]
+}

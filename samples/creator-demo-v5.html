@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OFFSCREEN — i quit my office job and honestly? best decision ever.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com">
+<link rel="preconnect" href="https://images.pexels.com">
+<link rel="preconnect" href="https://videos.pexels.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400;1,9..40,500&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS — Pastel Collage Scrapbook
+   Bricolage Grotesque (headlines) + DM Sans (body) + Caveat (handwritten)
+   Soft pastels with one pop color (hot pink)
+   ============================================================ */
+:root {
+  --bg-surface: #F2EBF5;
+  --paper: #FEFDFB;
+  --paper-warm: #FFF8F0;
+  --paper-cool: #F0F4FF;
+  --paper-pink: #FFF0F5;
+  --text-primary: #2D2640;
+  --text-secondary: #4A4360;
+  --text-caption: #9B93A8;
+  --text-on-dark: #FEFDFB;
+
+  /* Pastels */
+  --lavender: #D8C7F5;
+  --lavender-deep: #B799E5;
+  --lavender-light: #F0EAFF;
+  --pink: #FFB8D4;
+  --pink-hot: #FF4F9A;
+  --pink-light: #FFE4EF;
+  --mint: #B8E8D0;
+  --mint-light: #E4F8EE;
+  --butter: #FFF0B8;
+  --butter-light: #FFF8DC;
+  --sky: #B8D8F8;
+  --sky-light: #E8F2FF;
+  --peach: #FFDAB8;
+  --peach-light: #FFF0E4;
+  --coral: #FF8A80;
+
+  /* The pop color */
+  --pop: var(--pink-hot);
+  --pop-light: var(--pink-light);
+
+  --font-display: 'Bricolage Grotesque', -apple-system, sans-serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --font-hand: 'Caveat', cursive;
+
+  --page-pad: clamp(20px, 3vw, 40px);
+  --page-ratio: 210 / 297;
+
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 100px;
+  --radius-round: 50%;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg-surface);
+  background-image:
+    radial-gradient(ellipse at 15% 30%, rgba(216, 199, 245, 0.5) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 20%, rgba(255, 184, 212, 0.35) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 85%, rgba(184, 232, 208, 0.3) 0%, transparent 40%),
+    radial-gradient(ellipse at 85% 70%, rgba(255, 240, 184, 0.3) 0%, transparent 35%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100dvh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ============================================================
+   VIEWER AREA
+   ============================================================ */
+.viewer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 16px 56px;
+}
+
+/* ============================================================
+   SPREAD CONTAINER
+   ============================================================ */
+.spread {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  height: 92vh;
+  max-height: 92vh;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+.spread.turning-fwd  { opacity: 0; transform: translateX(-18px) scale(0.97); }
+.spread.turning-back { opacity: 0; transform: translateX(18px) scale(0.97); }
+.spread.entering-fwd  { opacity: 0; transform: translateX(18px) scale(0.97); }
+.spread.entering-back { opacity: 0; transform: translateX(-18px) scale(0.97); }
+
+.spread.is-spread::after {
+  content: '';
+  position: absolute;
+  top: 3%;
+  bottom: 3%;
+  left: 50%;
+  width: 30px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(45,38,64,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ============================================================
+   PAGE
+   ============================================================ */
+.page {
+  aspect-ratio: var(--page-ratio);
+  height: 92vh;
+  max-height: 92vh;
+  background: var(--paper);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: none;
+  flex-direction: column;
+  border-radius: var(--radius-md);
+}
+.page.single-page {
+  box-shadow:
+    0 2px 8px rgba(45,38,64,0.04),
+    0 8px 28px rgba(45,38,64,0.06),
+    0 20px 60px rgba(45,38,64,0.04);
+}
+.page.left-page {
+  box-shadow:
+    -4px 2px 16px rgba(45,38,64,0.05),
+    -8px 4px 32px rgba(45,38,64,0.04),
+    inset -12px 0 20px -12px rgba(45,38,64,0.03);
+  border-right: 1px solid rgba(45,38,64,0.04);
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+.page.right-page {
+  box-shadow:
+    4px 2px 16px rgba(45,38,64,0.05),
+    8px 4px 32px rgba(45,38,64,0.04),
+    inset 12px 0 20px -12px rgba(45,38,64,0.03);
+  border-left: 1px solid rgba(45,38,64,0.04);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+.page.visible { display: flex; }
+
+.page-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Running footer */
+.page-footer {
+  position: absolute;
+  bottom: 12px;
+  left: var(--page-pad);
+  right: var(--page-pad);
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-body);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-caption);
+  z-index: 3;
+}
+
+/* ============================================================
+   NAV ARROWS
+   ============================================================ */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  background: var(--paper);
+  border: 2px solid var(--lavender-deep);
+  border-radius: var(--radius-pill);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+  font-size: 18px;
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+.nav-arrow:hover { background: var(--lavender-light); border-color: var(--pop); color: var(--pop); }
+.nav-arrow:active { transform: translateY(-50%) scale(0.92); }
+.nav-arrow.disabled { opacity: 0.15; pointer-events: none; }
+.nav-prev { left: 8px; }
+.nav-next { right: 8px; }
+
+/* ============================================================
+   BOTTOM BAR (page indicator)
+   ============================================================ */
+.bottombar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-round);
+  background: rgba(45,38,64,0.12);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+.dot.active { background: var(--pop); transform: scale(1.4); box-shadow: 0 0 0 3px rgba(255,79,154,0.2); }
+.dot:hover { background: rgba(45,38,64,0.25); }
+
+/* ============================================================
+   VIEW MODE TOGGLE
+   ============================================================ */
+.mode-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 200;
+  display: flex;
+  gap: 2px;
+  background: var(--paper);
+  border: 2px solid var(--lavender);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  box-shadow: 0 2px 12px rgba(45,38,64,0.06);
+}
+.mode-btn {
+  background: none;
+  border: none;
+  color: var(--text-caption);
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-transform: uppercase;
+}
+.mode-btn:hover { color: var(--text-primary); }
+.mode-btn.active { background: var(--pop); color: #fff; }
+.mode-btn svg { width: 16px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+/* Page number overlay */
+.page-num {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--paper);
+  padding: 5px 16px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--lavender);
+  box-shadow: 0 2px 12px rgba(45,38,64,0.06);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   BRANDING WATERMARK
+   ============================================================ */
+.branding {
+  position: fixed;
+  bottom: 10px;
+  right: 14px;
+  z-index: 200;
+  font-family: var(--font-body);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  opacity: 0.3;
+  color: var(--text-caption);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+.branding:hover { opacity: 0.7; }
+
+/* ============================================================
+   VIDEO BACKGROUNDS
+   ============================================================ */
+.video-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+.video-bg video,
+.video-bg img.video-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* ============================================================
+   COVER PAGE — dreamy pastel collage
+   ============================================================ */
+.cover {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, var(--lavender-light) 0%, var(--pink-light) 50%, var(--butter-light) 100%);
+}
+.cover .video-bg {
+  border-radius: var(--radius-lg);
+  margin: var(--page-pad);
+  margin-bottom: 0;
+  inset: auto;
+  position: relative;
+  width: calc(100% - var(--page-pad) * 2);
+  height: 45%;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.cover .video-bg::after {
+  background: linear-gradient(to top,
+    rgba(255,240,245,0.6) 0%,
+    rgba(216,199,245,0.2) 40%,
+    transparent 70%);
+  border-radius: var(--radius-lg);
+}
+.cover .video-bg video,
+.cover .video-bg img.video-poster {
+  border-radius: var(--radius-lg);
+}
+.cover-content {
+  position: relative;
+  z-index: 5;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(12px, 2vw, 20px) var(--page-pad) var(--page-pad);
+}
+.cover-masthead {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 5.5vw, 48px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--pop);
+}
+.cover-date {
+  font-family: var(--font-hand);
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 500;
+  color: var(--text-caption);
+  margin-top: 4px;
+}
+.cover-kicker {
+  display: inline-block;
+  background: var(--pop);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 16px;
+  border-radius: var(--radius-pill);
+  margin-top: auto;
+  margin-bottom: 8px;
+  width: fit-content;
+}
+.cover-headline {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 3.6vw, 36px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  max-width: 80%;
+  color: var(--text-primary);
+}
+.cover-headline .highlight {
+  background: linear-gradient(to top, var(--butter) 40%, transparent 40%);
+  padding: 0 2px;
+}
+.cover-deck {
+  font-family: var(--font-body);
+  font-size: clamp(10px, 1.2vw, 13px);
+  font-weight: 400;
+  line-height: 1.6;
+  max-width: 70%;
+  margin-top: 10px;
+  color: var(--text-secondary);
+}
+.cover-byline {
+  font-family: var(--font-hand);
+  font-size: clamp(14px, 1.8vw, 18px);
+  font-weight: 500;
+  color: var(--text-caption);
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+/* Cover stickers */
+.cover-sticker {
+  position: absolute;
+  z-index: 6;
+}
+.cover-sticker-circle {
+  width: clamp(50px, 8vw, 72px);
+  height: clamp(50px, 8vw, 72px);
+  background: var(--butter);
+  border-radius: var(--radius-round);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid var(--text-primary);
+  box-shadow: 0 3px 12px rgba(45,38,64,0.08);
+}
+.cover-sticker-circle span {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: clamp(10px, 1.5vw, 14px);
+  text-align: center;
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+.cover-heart {
+  position: absolute;
+  top: 8%;
+  right: 6%;
+  transform: rotate(12deg);
+  z-index: 7;
+}
+.cover-heart svg {
+  width: clamp(24px, 3.5vw, 36px);
+  height: clamp(24px, 3.5vw, 36px);
+}
+.cover-star {
+  position: absolute;
+  z-index: 7;
+  font-family: var(--font-hand);
+  font-size: clamp(20px, 3.5vw, 34px);
+  color: var(--pop);
+  line-height: 1;
+}
+
+/* ============================================================
+   KICKER TAG — rounded pill style
+   ============================================================ */
+.kicker {
+  display: inline-block;
+  background: var(--pop);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: clamp(7px, 0.85vw, 10px);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+  width: fit-content;
+  margin-bottom: 10px;
+}
+.kicker.lavender { background: var(--lavender-deep); color: #fff; }
+.kicker.mint { background: var(--mint); color: var(--text-primary); }
+.kicker.butter { background: var(--butter); color: var(--text-primary); }
+.kicker.sky { background: var(--sky); color: var(--text-primary); }
+.kicker.peach { background: var(--peach); color: var(--text-primary); }
+
+/* ============================================================
+   SECTION TITLE — chunky, can overlap
+   ============================================================ */
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(22px, 3.8vw, 40px);
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+.section-title .hand-word {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  color: var(--pop);
+  font-size: 1.15em;
+}
+.section-title .highlight-word {
+  background: linear-gradient(to top, var(--butter) 40%, transparent 40%);
+  padding: 0 3px;
+}
+
+/* ============================================================
+   BODY TEXT — DM Sans, clean & relaxed
+   ============================================================ */
+.body-text {
+  font-family: var(--font-body);
+  font-size: clamp(10px, 1.2vw, 13px);
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+.body-text p { margin-bottom: 10px; }
+.body-text .lead {
+  font-family: var(--font-display);
+  font-size: clamp(14px, 1.8vw, 18px);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+.body-text .aside {
+  font-family: var(--font-hand);
+  color: var(--pop);
+  font-size: clamp(14px, 1.8vw, 18px);
+  font-weight: 500;
+}
+
+/* ============================================================
+   PULL QUOTE — highlighter effect
+   ============================================================ */
+.pull-quote {
+  background: var(--lavender-light);
+  border-radius: var(--radius-lg);
+  padding: clamp(14px, 2vw, 24px);
+  margin: 12px 0;
+  position: relative;
+}
+.pull-quote::before {
+  content: '\201C';
+  font-family: var(--font-display);
+  font-size: clamp(50px, 7vw, 70px);
+  font-weight: 800;
+  color: var(--lavender-deep);
+  position: absolute;
+  top: -6px;
+  left: 14px;
+  line-height: 1;
+  opacity: 0.3;
+}
+.pull-quote p {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(14px, 2.2vw, 22px);
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+.pull-quote p .hl {
+  background: linear-gradient(to top, var(--pink) 35%, transparent 35%);
+  padding: 0 2px;
+}
+
+/* Alt pull quote — mint */
+.pull-quote.mint-quote {
+  background: var(--mint-light);
+}
+.pull-quote.mint-quote::before { color: var(--mint); }
+
+/* Alt pull quote — butter */
+.pull-quote.butter-quote {
+  background: var(--butter-light);
+}
+.pull-quote.butter-quote::before { color: var(--butter); }
+
+/* ============================================================
+   IMAGES — scrapbook frames
+   ============================================================ */
+.img-block {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+}
+.img-block img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Tape-style frame */
+.img-tape {
+  position: relative;
+  background: #fff;
+  padding: 5px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 3px 14px rgba(45,38,64,0.06);
+}
+.img-tape::before,
+.img-tape::after {
+  content: '';
+  position: absolute;
+  width: clamp(28px, 4vw, 46px);
+  height: clamp(10px, 1.3vw, 16px);
+  background: rgba(216, 199, 245, 0.55);
+  z-index: 5;
+  border-radius: 2px;
+}
+.img-tape::before { top: -5px; left: 15%; transform: rotate(-2deg); }
+.img-tape::after { bottom: -5px; right: 18%; transform: rotate(1.5deg); }
+.img-tape .img-block { border-radius: var(--radius-xs); }
+
+/* Polaroid frame */
+.img-polaroid {
+  background: #fff;
+  padding: 5px 5px 22px 5px;
+  border-radius: var(--radius-xs);
+  box-shadow: 0 3px 16px rgba(45,38,64,0.07);
+}
+.img-polaroid .img-block { border-radius: 4px; }
+.img-polaroid .caption {
+  font-family: var(--font-hand);
+  font-size: clamp(11px, 1.4vw, 15px);
+  color: var(--text-caption);
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   STICKER LABELS — scattered decorative
+   ============================================================ */
+.sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--butter);
+  color: var(--text-primary);
+  font-family: var(--font-hand);
+  font-weight: 600;
+  font-size: clamp(11px, 1.3vw, 15px);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--text-primary);
+  box-shadow: 0 2px 8px rgba(45,38,64,0.06);
+  white-space: nowrap;
+}
+.sticker.pink { background: var(--pink); }
+.sticker.mint { background: var(--mint); }
+.sticker.lavender { background: var(--lavender); }
+.sticker.sky { background: var(--sky); }
+.sticker.peach { background: var(--peach); }
+.sticker.pop { background: var(--pop); color: #fff; border-color: var(--pop); }
+
+/* Handwritten note */
+.hand-note {
+  font-family: var(--font-hand);
+  color: var(--pop);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ============================================================
+   ARTICLE PAGE LAYOUTS
+   ============================================================ */
+.article-page {
+  padding: var(--page-pad);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0;
+}
+
+/* Full-bleed */
+.full-bleed {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.full-bleed img,
+.full-bleed video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.full-bleed::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(45,38,64,0.75) 0%, rgba(45,38,64,0.2) 40%, transparent 65%);
+}
+.full-bleed-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--page-pad);
+  color: #fff;
+}
+
+/* Two-column layout */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(10px, 1.8vw, 22px);
+  flex: 1;
+}
+
+/* Accent blocks — pastel rounded boxes */
+.accent-block {
+  background: var(--lavender-light);
+  color: var(--text-primary);
+  padding: clamp(14px, 2vw, 24px);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.accent-block.pink { background: var(--pink-light); }
+.accent-block.mint { background: var(--mint-light); }
+.accent-block.butter { background: var(--butter-light); }
+.accent-block.dark { background: var(--text-primary); color: #fff; border-radius: var(--radius-lg); }
+
+/* Numbered list */
+.advice-list {
+  list-style: none;
+  counter-reset: advice;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.advice-list li {
+  counter-increment: advice;
+  padding: clamp(10px, 1.3vw, 16px);
+  background: var(--paper-warm);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: clamp(9.5px, 1.15vw, 12px);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.advice-list li::before {
+  content: counter(advice);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(22px, 3vw, 32px);
+  color: var(--pop);
+  line-height: 1;
+  flex-shrink: 0;
+  min-width: 28px;
+}
+.advice-list li:nth-child(2) { background: var(--lavender-light); }
+.advice-list li:nth-child(3) { background: var(--mint-light); }
+
+/* ============================================================
+   SECTION OPENER (video bg)
+   ============================================================ */
+.section-opener {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.section-opener .video-bg::after {
+  background: linear-gradient(to top,
+    rgba(45, 38, 64, 0.8) 0%,
+    rgba(45, 38, 64, 0.35) 35%,
+    rgba(216, 199, 245, 0.15) 60%,
+    transparent 100%);
+}
+.section-opener-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--page-pad);
+  color: #fff;
+}
+
+/* ============================================================
+   VISUAL BREAK PAGE
+   ============================================================ */
+.visual-break {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.visual-break .video-bg::after {
+  background: linear-gradient(135deg,
+    rgba(216, 199, 245, 0.5) 0%,
+    rgba(255, 184, 212, 0.4) 50%,
+    rgba(184, 232, 208, 0.4) 100%);
+  mix-blend-mode: hard-light;
+}
+.visual-break-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-pad);
+  text-align: center;
+  color: #fff;
+}
+
+/* ============================================================
+   BACK COVER
+   ============================================================ */
+.back-cover {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-pad);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, var(--lavender-light) 0%, var(--pink-light) 50%, var(--mint-light) 100%);
+}
+.back-cover-logo {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 7vw, 56px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--pop);
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 2;
+}
+.back-cover-tagline {
+  font-family: var(--font-hand);
+  font-size: clamp(16px, 2.2vw, 22px);
+  color: var(--text-secondary);
+  max-width: 260px;
+  line-height: 1.4;
+  position: relative;
+  z-index: 2;
+}
+.back-cover-socials {
+  margin-top: 20px;
+  display: flex;
+  gap: 6px;
+  position: relative;
+  z-index: 2;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.social-pill {
+  background: var(--paper);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 5px 14px;
+  border: 2px solid var(--lavender);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.social-pill:hover { border-color: var(--pop); color: var(--pop); }
+
+/* ============================================================
+   DECORATIVE ELEMENTS — soft scrapbook shapes
+   ============================================================ */
+.deco-blob {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 50%;
+  opacity: 0.12;
+}
+.deco-doodle {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  font-family: var(--font-hand);
+  font-size: clamp(18px, 3vw, 30px);
+  color: var(--pop);
+  opacity: 0.2;
+}
+
+/* Column rule for multi-col text */
+.col-text {
+  column-count: 2;
+  column-gap: clamp(12px, 2vw, 24px);
+  column-rule: 1px solid rgba(45,38,64,0.06);
+}
+
+/* ============================================================
+   PRINT SUPPORT
+   ============================================================ */
+@media print {
+  body {
+    background: none !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  .viewer { padding: 0 !important; overflow: visible !important; }
+  .spread { height: auto !important; max-height: none !important; }
+  .page {
+    display: flex !important;
+    page-break-after: always;
+    page-break-inside: avoid;
+    height: 100vh !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+  .page.visible, .page:not(.visible) { display: flex !important; }
+  .nav-arrow, .bottombar, .mode-toggle, .page-num, .branding { display: none !important; }
+  .spread::after { display: none !important; }
+  video { display: none !important; }
+  .video-bg img.video-poster { display: block !important; }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .viewer { padding: 8px 12px; }
+  .cover-headline { max-width: 90%; font-size: clamp(16px, 5vw, 26px); }
+  .cover-deck { max-width: 85%; }
+  .two-col {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .col-text { column-count: 1; }
+  .nav-arrow { width: 36px; height: 36px; font-size: 14px; }
+  .mode-toggle { display: none; }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .spread { transition: none; }
+  .spread.turning-fwd,
+  .spread.turning-back,
+  .spread.entering-fwd,
+  .spread.entering-back { transform: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- View Mode Toggle -->
+<div class="mode-toggle">
+  <button class="mode-btn active" id="singleBtn" aria-label="Single page view">
+    <svg viewBox="0 0 16 14"><rect x="3" y="1" width="10" height="12" rx="2"/></svg>
+    1-up
+  </button>
+  <button class="mode-btn" id="spreadBtn" aria-label="Two-page spread view">
+    <svg viewBox="0 0 16 14"><rect x="1" y="1" width="6" height="12" rx="2"/><rect x="9" y="1" width="6" height="12" rx="2"/></svg>
+    2-up
+  </button>
+</div>
+
+<!-- Page Number -->
+<div class="page-num" id="pageNum">1 / 12</div>
+
+<!-- Main Viewer -->
+<div class="viewer" id="viewer">
+
+  <!-- Nav Arrows -->
+  <button class="nav-arrow nav-prev" id="prevBtn" aria-label="Previous page">&larr;</button>
+  <button class="nav-arrow nav-next" id="nextBtn" aria-label="Next page">&rarr;</button>
+
+  <!-- Spread Container -->
+  <div class="spread" id="spread">
+
+    <!-- ===================== PAGE 1: COVER ===================== -->
+    <div class="page" data-page="1">
+      <div class="page-inner">
+        <div class="cover">
+          <div class="video-bg" data-video>
+            <video muted loop playsinline preload="metadata"
+              poster="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80&fm=jpg&crop=entropy&cs=srgb">
+              <source src="https://videos.pexels.com/video-files/3254066/3254066-uhd_2560_1440_25fps.mp4" type="video/mp4">
+            </video>
+            <img class="video-poster" src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Creative workspace with people collaborating" style="display:none;" loading="eager" width="800" height="600">
+          </div>
+
+          <!-- Floating stickers -->
+          <div class="cover-sticker" style="top:6%;right:5%;transform:rotate(8deg);">
+            <div class="cover-sticker-circle">
+              <span>real<br>talk!</span>
+            </div>
+          </div>
+          <div class="cover-heart" style="top:3%;right:30%;">
+            <svg viewBox="0 0 24 24" fill="var(--pop)" stroke="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          </div>
+          <div class="cover-star" style="bottom:52%;left:6%;transform:rotate(-15deg);">&#10022;</div>
+          <div class="deco-doodle" style="top:14%;left:4%;transform:rotate(-8deg);font-size:clamp(14px,2vw,20px);">~</div>
+
+          <div class="cover-content">
+            <div class="cover-masthead">Offscreen</div>
+            <div class="cover-date">march 2026 / issue fourteen</div>
+            <div class="cover-kicker">Real Talk</div>
+            <h1 class="cover-headline">i quit my office job and <span class="highlight">honestly?</span> best decision ever.</h1>
+            <p class="cover-deck">Remote work isn't about the laptop-on-the-beach fantasy. It's about finally having time to think.</p>
+            <div class="cover-byline">words by Jamie Torres</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 2: OPENING SPREAD ===================== -->
+    <div class="page" data-page="2">
+      <div class="page-inner">
+        <div class="section-opener">
+          <div class="video-bg" data-video>
+            <video muted loop playsinline preload="metadata"
+              poster="https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb">
+              <source src="https://videos.pexels.com/video-files/1851768/1851768-hd_1920_1080_24fps.mp4" type="video/mp4">
+            </video>
+            <img class="video-poster" src="https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Minimal desk from above" style="display:none;" loading="lazy" width="1200" height="800">
+          </div>
+          <div class="section-opener-content">
+            <div class="sticker pink" style="margin-bottom:14px;transform:rotate(-3deg);align-self:flex-start;">real talk</div>
+            <h2 style="font-family:var(--font-display);font-size:clamp(17px,3vw,32px);font-weight:800;line-height:1.05;letter-spacing:-0.03em;max-width:85%;">i quit my office job and <span style="font-family:var(--font-hand);font-weight:700;font-size:1.1em;">honestly?</span> best decision ever.</h2>
+            <p style="font-family:var(--font-body);font-size:clamp(9px,1.1vw,12px);margin-top:10px;opacity:0.7;max-width:65%;line-height:1.65;">Remote work isn't about the laptop-on-the-beach fantasy. It's about finally having time to think.</p>
+            <p style="font-family:var(--font-hand);font-size:clamp(13px,1.6vw,17px);margin-top:12px;opacity:0.5;">words by Jamie Torres  /  March 2026</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 3: CONTENTS ===================== -->
+    <div class="page" data-page="3">
+      <div class="page-inner">
+        <div class="article-page" style="background:var(--paper-warm);">
+          <!-- Soft pastel blob decoration -->
+          <div class="deco-blob" style="top:-15%;right:-8%;width:50%;height:50%;background:var(--lavender);opacity:0.08;"></div>
+          <div class="deco-blob" style="bottom:-10%;left:-5%;width:35%;height:35%;background:var(--mint);opacity:0.07;"></div>
+
+          <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;">
+            <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:clamp(14px,2.5vw,26px);">
+              <span style="font-family:var(--font-display);font-weight:800;font-size:clamp(26px,4.5vw,44px);letter-spacing:-0.03em;line-height:1;">Contents</span>
+              <span class="sticker lavender" style="font-size:clamp(9px,1vw,12px);border:none;box-shadow:none;transform:rotate(-2deg);">issue 14</span>
+            </div>
+
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px;">
+              <!-- Entry 1 -->
+              <div style="display:flex;align-items:center;gap:10px;padding:clamp(10px,1.4vw,16px);background:var(--pink-light);border-radius:var(--radius-md);">
+                <span style="font-family:var(--font-display);font-weight:800;font-size:clamp(24px,3.8vw,38px);color:var(--pop);line-height:1;min-width:36px;">01</span>
+                <div style="flex:1;">
+                  <p style="font-family:var(--font-display);font-weight:700;font-size:clamp(12px,1.5vw,16px);letter-spacing:-0.02em;">the breaking point</p>
+                  <p style="font-family:var(--font-hand);font-size:clamp(11px,1.2vw,14px);color:var(--text-caption);margin-top:1px;">meetings about meetings about meetings</p>
+                </div>
+                <span style="font-family:var(--font-body);font-size:clamp(9px,1vw,11px);font-weight:700;color:var(--text-caption);">04</span>
+              </div>
+              <!-- Entry 2 -->
+              <div style="display:flex;align-items:center;gap:10px;padding:clamp(10px,1.4vw,16px);background:var(--lavender-light);border-radius:var(--radius-md);">
+                <span style="font-family:var(--font-display);font-weight:800;font-size:clamp(24px,3.8vw,38px);color:var(--lavender-deep);line-height:1;min-width:36px;">02</span>
+                <div style="flex:1;">
+                  <p style="font-family:var(--font-display);font-weight:700;font-size:clamp(12px,1.5vw,16px);letter-spacing:-0.02em;">the reality check</p>
+                  <p style="font-family:var(--font-hand);font-size:clamp(11px,1.2vw,14px);color:var(--text-caption);margin-top:1px;">cereal at 2pm, productivity videos at 3pm</p>
+                </div>
+                <span style="font-family:var(--font-body);font-size:clamp(9px,1vw,11px);font-weight:700;color:var(--text-caption);">06</span>
+              </div>
+              <!-- Entry 3 -->
+              <div style="display:flex;align-items:center;gap:10px;padding:clamp(10px,1.4vw,16px);background:var(--mint-light);border-radius:var(--radius-md);">
+                <span style="font-family:var(--font-display);font-weight:800;font-size:clamp(24px,3.8vw,38px);color:var(--mint);line-height:1;min-width:36px;">03</span>
+                <div style="flex:1;">
+                  <p style="font-family:var(--font-display);font-weight:700;font-size:clamp(12px,1.5vw,16px);letter-spacing:-0.02em;">what nobody tells you</p>
+                  <p style="font-family:var(--font-hand);font-size:clamp(11px,1.2vw,14px);color:var(--text-caption);margin-top:1px;">the loneliness, the books, the ROI</p>
+                </div>
+                <span style="font-family:var(--font-body);font-size:clamp(9px,1vw,11px);font-weight:700;color:var(--text-caption);">08</span>
+              </div>
+              <!-- Entry 4 -->
+              <div style="display:flex;align-items:center;gap:10px;padding:clamp(10px,1.4vw,16px);background:var(--butter-light);border-radius:var(--radius-md);">
+                <span style="font-family:var(--font-display);font-weight:800;font-size:clamp(24px,3.8vw,38px);color:var(--peach);line-height:1;min-width:36px;">04</span>
+                <div style="flex:1;">
+                  <p style="font-family:var(--font-display);font-weight:700;font-size:clamp(12px,1.5vw,16px);letter-spacing:-0.02em;">the actual advice</p>
+                  <p style="font-family:var(--font-hand);font-size:clamp(11px,1.2vw,14px);color:var(--text-caption);margin-top:1px;">save money. drop the ego. trust yourself.</p>
+                </div>
+                <span style="font-family:var(--font-body);font-size:clamp(9px,1vw,11px);font-weight:700;color:var(--text-caption);">10</span>
+              </div>
+            </div>
+
+            <div style="font-family:var(--font-hand);font-size:clamp(11px,1.3vw,14px);color:var(--text-caption);line-height:1.5;margin-top:auto;padding-top:8px;border-top:1px solid rgba(45,38,64,0.06);">
+              Photography by Unsplash & Pexels contributors. All opinions are the author's own. Don't quit your job because a magazine told you to. (or do, we're not your boss anymore lol)
+            </div>
+          </div>
+
+          <div class="page-footer">
+            <span>Offscreen</span>
+            <span>03</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 4: SECTION 1 — the breaking point ===================== -->
+    <div class="page" data-page="4">
+      <div class="page-inner">
+        <div class="article-page">
+          <!-- Background blobs -->
+          <div class="deco-blob" style="top:-8%;right:-12%;width:40%;height:40%;background:var(--pink);opacity:0.06;"></div>
+
+          <div class="kicker">Section 01</div>
+          <h2 class="section-title">the <span class="hand-word">breaking</span> <span class="highlight-word">point</span></h2>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+            <div class="body-text">
+              <p class="lead">So here's the thing.</p>
+              <p>I was sitting in a meeting about a meeting about another meeting and I just... left. Not dramatically. I didn't flip a table. I just opened my laptop, wrote a two-week notice, and felt my shoulders drop for the first time in months.</p>
+              <p class="aside">(I know. Very main character of me.)</p>
+            </div>
+
+            <div class="img-tape" style="flex:0 0 auto;max-height:30%;transform:rotate(-1.5deg);">
+              <div class="img-block" style="height:100%;">
+                <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=600&q=80&fm=jpg&crop=entropy&cs=srgb" alt="People in a corporate meeting room" loading="lazy" width="600" height="400">
+              </div>
+            </div>
+
+            <!-- Handwritten margin note -->
+            <div class="hand-note" style="font-size:clamp(12px,1.5vw,16px);transform:rotate(-2deg);align-self:flex-end;margin-right:8px;">
+              ^ this was literally me lol
+            </div>
+
+            <div class="body-text" style="margin-top:auto;">
+              <p>The corporate world has this trick where it makes you believe your identity is your job title. Senior Associate blah blah blah. Cool. But when someone asks you what you actually DO all day and you can't answer without using the word "synergy," that's your sign.</p>
+            </div>
+          </div>
+
+          <div class="page-footer">
+            <span>Offscreen</span>
+            <span>04</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 5: FULL BLEED PHOTO ===================== -->
+    <div class="page" data-page="5">
+      <div class="page-inner">
+        <div style="height:100%;position:relative;overflow:hidden;">
+          <div class="full-bleed">
+            <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Laptop and coffee on a desk by a window" loading="lazy" width="1200" height="800">
+          </div>
+          <div class="full-bleed-content" style="justify-content:space-between;">
+            <div style="display:flex;justify-content:flex-end;padding-top:8px;">
+              <div class="sticker pop" style="transform:rotate(5deg);">mood</div>
+            </div>
+            <div>
+              <p style="font-family:var(--font-hand);font-size:clamp(18px,3.2vw,32px);line-height:1.2;max-width:80%;text-shadow:0 2px 20px rgba(0,0,0,0.4);">
+                When someone asks you what you actually do all day and you can't answer without using the word "synergy" --
+              </p>
+              <p style="font-family:var(--font-display);font-weight:800;font-size:clamp(18px,3.2vw,32px);letter-spacing:-0.03em;margin-top:8px;text-shadow:0 2px 20px rgba(0,0,0,0.4);">
+                <span style="background:linear-gradient(to top, var(--pop) 35%, transparent 35%);padding:0 4px;">that's your sign.</span>
+              </p>
+            </div>
+          </div>
+          <div class="page-footer" style="color:rgba(255,255,255,0.3);">
+            <span>Real Talk</span>
+            <span>05</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 6: SECTION 2 — the reality check ===================== -->
+    <div class="page" data-page="6">
+      <div class="page-inner">
+        <div class="article-page" style="background:var(--paper);">
+          <div class="deco-blob" style="bottom:-10%;left:-8%;width:45%;height:45%;background:var(--lavender);opacity:0.06;"></div>
+
+          <div class="kicker lavender">Section 02</div>
+          <h2 class="section-title">the <span class="hand-word">reality</span> check</h2>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+            <div class="body-text">
+              <p class="lead">Let me be honest: the first month sucked.</p>
+              <p>No structure. No one pinging me. No reason to put on pants. You think you want freedom until you have it and you're eating cereal at 2pm watching your third YouTube video about productivity systems you'll never use.</p>
+            </div>
+
+            <div class="pull-quote">
+              <p>You think you want freedom until you have it and you're <span class="hl">eating cereal at 2pm.</span></p>
+            </div>
+
+            <div class="body-text">
+              <p>But then something shifted. I started building things. Not decks. Not reports. Actual things. A newsletter. A side project. A morning routine that didn't involve a commute.</p>
+            </div>
+
+            <!-- Scattered stickers -->
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;">
+              <div class="sticker mint" style="transform:rotate(-3deg);font-size:clamp(9px,1.1vw,12px);">newsletter</div>
+              <div class="sticker butter" style="transform:rotate(2deg);font-size:clamp(9px,1.1vw,12px);">side project</div>
+              <div class="sticker pink" style="transform:rotate(-1deg);font-size:clamp(9px,1.1vw,12px);">morning routine</div>
+            </div>
+          </div>
+
+          <div class="page-footer">
+            <span>Real Talk</span>
+            <span>06</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 7: VISUAL BREAK — video mood page ===================== -->
+    <div class="page" data-page="7">
+      <div class="page-inner">
+        <div class="visual-break">
+          <div class="video-bg" data-video>
+            <video muted loop playsinline preload="metadata"
+              poster="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&q=80&fm=jpg&crop=entropy&cs=srgb">
+              <source src="https://videos.pexels.com/video-files/6897966/6897966-uhd_2732_1440_25fps.mp4" type="video/mp4">
+            </video>
+            <img class="video-poster" src="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Person writing in a notebook" style="display:none;" loading="lazy" width="800" height="600">
+          </div>
+          <div class="visual-break-content">
+            <div class="sticker pop" style="margin-bottom:18px;transform:rotate(-4deg);">mood shift</div>
+            <p style="font-family:var(--font-display);font-weight:800;font-size:clamp(18px,3.6vw,32px);line-height:1.08;letter-spacing:-0.03em;max-width:80%;text-shadow:0 2px 30px rgba(0,0,0,0.4);">
+              Building things that actually <span style="font-family:var(--font-hand);font-weight:700;font-size:1.1em;color:var(--pink);">matter</span> to you hits different.
+            </p>
+            <p style="font-family:var(--font-body);font-size:clamp(9px,1vw,12px);opacity:0.55;margin-top:14px;max-width:55%;line-height:1.65;">
+              Not decks. Not reports. Actual things.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 8: SECTION 3 — what nobody tells you ===================== -->
+    <div class="page" data-page="8">
+      <div class="page-inner">
+        <div class="article-page">
+          <div class="deco-blob" style="top:-5%;right:-10%;width:35%;height:35%;background:var(--sky);opacity:0.07;"></div>
+
+          <div class="kicker mint">Section 03</div>
+          <h2 class="section-title">what <span class="hand-word">nobody</span> tells you</h2>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+            <div class="body-text">
+              <p class="lead">The loneliness is real.</p>
+              <p>The self-doubt is real. The "am I wasting my life" 3am spiral is very, very real.</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div class="img-polaroid" style="transform:rotate(-2deg);">
+                <div class="img-block">
+                  <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Person reading a book" loading="lazy" width="400" height="300" style="aspect-ratio:4/3;object-fit:cover;">
+                </div>
+                <div class="caption">12 books!!</div>
+              </div>
+              <div class="img-tape" style="transform:rotate(2deg);">
+                <div class="img-block">
+                  <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Person cooking in a kitchen" loading="lazy" width="400" height="300" style="aspect-ratio:4/3;object-fit:cover;">
+                </div>
+              </div>
+            </div>
+
+            <div class="body-text">
+              <p>But also? I read 12 books last month. I learned to cook something that wasn't pasta. I called my mom on a Tuesday afternoon just because I could.</p>
+            </div>
+
+            <div class="pull-quote mint-quote" style="margin-top:auto;">
+              <p>The ROI on that <span class="hl">doesn't fit in a spreadsheet.</span></p>
+            </div>
+          </div>
+
+          <div class="page-footer">
+            <span>Real Talk</span>
+            <span>08</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 9: BIG QUOTE — typographic statement ===================== -->
+    <div class="page" data-page="9">
+      <div class="page-inner">
+        <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--page-pad);text-align:center;position:relative;background:linear-gradient(160deg, var(--lavender-light) 0%, var(--pink-light) 40%, var(--butter-light) 100%);overflow:hidden;">
+
+          <!-- Scattered stickers -->
+          <div class="sticker mint" style="position:absolute;top:10%;left:7%;transform:rotate(-8deg);font-size:clamp(9px,1.1vw,12px);">12 books</div>
+          <div class="sticker sky" style="position:absolute;top:15%;right:8%;transform:rotate(5deg);font-size:clamp(9px,1.1vw,12px);">real food</div>
+          <div class="sticker pink" style="position:absolute;bottom:20%;left:10%;transform:rotate(3deg);font-size:clamp(9px,1.1vw,12px);">no commute</div>
+          <div class="sticker butter" style="position:absolute;bottom:14%;right:7%;transform:rotate(-5deg);font-size:clamp(9px,1.1vw,12px);">freedom</div>
+
+          <!-- Doodle decorations -->
+          <div class="deco-doodle" style="top:25%;left:4%;transform:rotate(-12deg);">&#10022;</div>
+          <div class="deco-doodle" style="bottom:28%;right:4%;transform:rotate(10deg);color:var(--lavender-deep);">~</div>
+          <div class="deco-blob" style="top:30%;right:15%;width:20%;height:20%;background:var(--lavender);opacity:0.1;"></div>
+          <div class="deco-blob" style="bottom:25%;left:20%;width:15%;height:15%;background:var(--mint);opacity:0.08;"></div>
+
+          <div style="position:relative;z-index:2;max-width:80%;">
+            <div class="kicker" style="margin:0 auto 16px;">Real Talk</div>
+            <p style="font-family:var(--font-hand);font-size:clamp(24px,5vw,46px);line-height:1.2;color:var(--text-primary);">
+              I called my mom on a Tuesday afternoon just because I
+            </p>
+            <p style="font-family:var(--font-display);font-weight:800;font-size:clamp(28px,5.5vw,50px);letter-spacing:-0.03em;color:var(--pop);margin-top:4px;">
+              could.
+            </p>
+            <p style="font-family:var(--font-body);font-size:clamp(9px,1vw,12px);color:var(--text-caption);margin-top:18px;line-height:1.65;">The small wins nobody talks about when they share their "quit my job" story.</p>
+          </div>
+
+          <div class="page-footer">
+            <span>Offscreen</span>
+            <span>09</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 10: SECTION 4 — the actual advice ===================== -->
+    <div class="page" data-page="10">
+      <div class="page-inner">
+        <div class="article-page">
+          <div class="deco-blob" style="top:-5%;left:-8%;width:35%;height:35%;background:var(--peach);opacity:0.06;"></div>
+
+          <div class="kicker peach">Section 04</div>
+          <h2 class="section-title">the <span class="hand-word">actual</span> advice</h2>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+            <div class="body-text">
+              <p class="lead">If you're thinking about it:</p>
+            </div>
+
+            <ol class="advice-list">
+              <li>
+                <div>
+                  <strong style="color:var(--text-primary);display:block;margin-bottom:3px;font-family:var(--font-display);font-weight:700;font-size:clamp(10px,1.3vw,14px);letter-spacing:-0.02em;">Save 6 months of expenses first.</strong>
+                  Seriously. The freedom feels very different when you're not panicking about rent. Give yourself a runway so your creativity isn't fueled by anxiety.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong style="color:var(--text-primary);display:block;margin-bottom:3px;font-family:var(--font-display);font-weight:700;font-size:clamp(10px,1.3vw,14px);letter-spacing:-0.02em;">Tell your ego to sit down.</strong>
+                  Nobody cares about your title except you. The sooner you detach your self-worth from your LinkedIn profile, the sooner you can actually figure out what you want.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong style="color:var(--text-primary);display:block;margin-bottom:3px;font-family:var(--font-display);font-weight:700;font-size:clamp(10px,1.3vw,14px);letter-spacing:-0.02em;">Stop asking LinkedIn influencers for permission.</strong>
+                  The people posting "hot takes" about career pivots are performing. You already know what you need to do. Trust that.
+                </div>
+              </li>
+            </ol>
+
+            <div class="accent-block dark" style="margin-top:auto;text-align:center;">
+              <p style="font-family:var(--font-display);font-weight:800;font-size:clamp(16px,2.5vw,26px);line-height:1.1;letter-spacing:-0.03em;">You already <span style="font-family:var(--font-hand);font-weight:700;font-size:1.2em;color:var(--pink);">know.</span></p>
+            </div>
+          </div>
+
+          <div class="page-footer">
+            <span>Real Talk</span>
+            <span>10</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 11: CLOSING — full video sign-off ===================== -->
+    <div class="page" data-page="11">
+      <div class="page-inner">
+        <div style="height:100%;position:relative;overflow:hidden;">
+          <div class="full-bleed" data-video>
+            <video muted loop playsinline preload="metadata"
+              poster="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb"
+              style="width:100%;height:100%;object-fit:cover;">
+              <source src="https://videos.pexels.com/video-files/3627091/3627091-uhd_2560_1440_30fps.mp4" type="video/mp4">
+            </video>
+            <img class="video-poster" src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80&fm=jpg&crop=entropy&cs=srgb" alt="Wide landscape vista" style="display:none;width:100%;height:100%;object-fit:cover;" loading="lazy" width="1200" height="800">
+          </div>
+          <div class="full-bleed-content" style="justify-content:space-between;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;padding-top:8px;">
+              <div class="sticker pop" style="transform:rotate(-3deg);">the end.</div>
+              <div class="sticker mint" style="transform:rotate(4deg);">go build something</div>
+            </div>
+            <div>
+              <p style="font-family:var(--font-display);font-weight:800;font-size:clamp(18px,3vw,30px);line-height:1.08;letter-spacing:-0.03em;max-width:65%;text-shadow:0 2px 30px rgba(0,0,0,0.4);">
+                Stop scrolling.<br>Start <span style="font-family:var(--font-hand);font-weight:700;font-size:1.15em;color:var(--pink);">building.</span>
+              </p>
+              <p style="font-family:var(--font-body);font-size:clamp(9px,1vw,12px);opacity:0.65;max-width:55%;line-height:1.65;margin-top:10px;">
+                Jamie Torres writes about work, creativity, and figuring it out. Find more at offscreen.pub
+              </p>
+              <p style="font-family:var(--font-hand);font-size:clamp(12px,1.4vw,15px);opacity:0.4;margin-top:6px;">
+                photography: unsplash & pexels contributors
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PAGE 12: BACK COVER ===================== -->
+    <div class="page" data-page="12">
+      <div class="page-inner">
+        <div class="back-cover">
+          <!-- Decorative blobs -->
+          <div class="deco-blob" style="top:-15%;right:-15%;width:50%;height:50%;background:var(--lavender);opacity:0.15;"></div>
+          <div class="deco-blob" style="bottom:-15%;left:-10%;width:45%;height:45%;background:var(--mint);opacity:0.12;"></div>
+          <div class="deco-blob" style="top:40%;left:-20%;width:40%;height:40%;background:var(--pink);opacity:0.08;"></div>
+
+          <!-- Floating stickers -->
+          <div class="sticker pink" style="position:absolute;top:10%;left:8%;transform:rotate(-8deg);z-index:3;font-size:clamp(9px,1.1vw,12px);">xo</div>
+          <div class="sticker butter" style="position:absolute;top:14%;right:10%;transform:rotate(6deg);z-index:3;font-size:clamp(9px,1.1vw,12px);">bye 4 now</div>
+          <div class="sticker lavender" style="position:absolute;bottom:16%;left:12%;transform:rotate(4deg);z-index:3;font-size:clamp(9px,1.1vw,12px);">see u next issue</div>
+
+          <div style="position:relative;z-index:3;">
+            <div class="back-cover-logo">Offscreen</div>
+            <p class="back-cover-tagline">For the ones who quit the meeting, opened the laptop, and chose themselves.</p>
+            <div class="back-cover-socials">
+              <span class="social-pill">@offscreen</span>
+              <span class="social-pill">offscreen.pub</span>
+              <span class="social-pill">#realtalk</span>
+            </div>
+            <p style="font-family:var(--font-hand);font-size:clamp(12px,1.4vw,15px);color:var(--text-caption);margin-top:24px;">issue 14 / march 2026 / printed in pixels</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /spread -->
+</div><!-- /viewer -->
+
+<!-- Bottom Page Indicator -->
+<div class="bottombar" id="bottombar"></div>
+
+<!-- Branding -->
+<a class="branding" href="https://github.com/bluedusk/html-magazine" target="_blank" rel="noopener">Built with html-magazine</a>
+
+<script>
+(function() {
+  'use strict';
+
+  var pages      = [].slice.call(document.querySelectorAll('.page'));
+  var spread     = document.getElementById('spread');
+  var pageNum    = document.getElementById('pageNum');
+  var prevBtn    = document.getElementById('prevBtn');
+  var nextBtn    = document.getElementById('nextBtn');
+  var singleBtn  = document.getElementById('singleBtn');
+  var spreadBtn  = document.getElementById('spreadBtn');
+  var bottombar  = document.getElementById('bottombar');
+  var viewer     = document.getElementById('viewer');
+  var total      = pages.length;
+
+  var current  = 0;
+  var mode     = localStorage.getItem('offscreen-view-mode') || 'single';
+  var turning  = false;
+
+  // ---- Video management ----
+  function getAllVideos() {
+    return [].slice.call(document.querySelectorAll('.page video'));
+  }
+
+  function pauseAllVideos() {
+    getAllVideos().forEach(function(v) {
+      if (!v.paused) {
+        v.pause();
+      }
+    });
+  }
+
+  function playVisibleVideos() {
+    pauseAllVideos();
+
+    var views = getViewList();
+    var viewIdx = currentViewIndex();
+    var visible = views[viewIdx] || [0];
+
+    visible.forEach(function(pageIdx) {
+      var page = pages[pageIdx];
+      if (!page) return;
+      var videos = [].slice.call(page.querySelectorAll('video'));
+      videos.forEach(function(v) {
+        if (v.paused) {
+          var playPromise = v.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(function() {
+              var poster = v.parentElement.querySelector('.video-poster');
+              if (poster) {
+                poster.style.display = 'block';
+                v.style.display = 'none';
+              }
+            });
+          }
+        }
+      });
+    });
+  }
+
+  // ---- Build dots ----
+  function buildDots() {
+    bottombar.innerHTML = '';
+    var views = getViewList();
+    views.forEach(function(_, i) {
+      var dot = document.createElement('button');
+      dot.className = 'dot';
+      dot.setAttribute('aria-label', 'Go to view ' + (i + 1));
+      dot.addEventListener('click', function() { goToView(i); });
+      bottombar.appendChild(dot);
+    });
+  }
+
+  // ---- View helpers ----
+  function getViewList() {
+    if (mode === 'single') return pages.map(function(_, i) { return [i]; });
+    // Spread: cover alone (page 0), then pairs starting from page 1
+    var views = [[0]];
+    for (var i = 1; i < total; i += 2) {
+      var pair = [i];
+      if (i + 1 < total) pair.push(i + 1);
+      views.push(pair);
+    }
+    return views;
+  }
+
+  function currentViewIndex() {
+    var views = getViewList();
+    for (var i = 0; i < views.length; i++) {
+      if (views[i].indexOf(current) !== -1) return i;
+    }
+    return 0;
+  }
+
+  function goToView(viewIdx) {
+    var views = getViewList();
+    if (viewIdx < 0 || viewIdx >= views.length) return;
+    var target = views[viewIdx][0];
+    if (target === current) return;
+    var dir = target > current ? 'fwd' : 'back';
+    turn(target, dir);
+  }
+
+  // ---- Render ----
+  function render() {
+    var views   = getViewList();
+    var viewIdx = currentViewIndex();
+    var visible = views[viewIdx] || [0];
+
+    pages.forEach(function(p) {
+      p.classList.remove('visible', 'single-page', 'left-page', 'right-page');
+    });
+
+    var isSpread = mode === 'spread' && visible.length === 2;
+    spread.classList.toggle('is-spread', isSpread);
+
+    if (isSpread) {
+      pages[visible[0]].classList.add('visible', 'left-page');
+      pages[visible[1]].classList.add('visible', 'right-page');
+    } else {
+      pages[visible[0]].classList.add('visible', 'single-page');
+    }
+
+    // Page number
+    if (isSpread) {
+      pageNum.textContent = (visible[0] + 1) + '\u2013' + (visible[1] + 1) + ' / ' + total;
+    } else {
+      pageNum.textContent = (visible[0] + 1) + ' / ' + total;
+    }
+
+    // Dots
+    var dots = bottombar.querySelectorAll('.dot');
+    for (var i = 0; i < dots.length; i++) {
+      dots[i].classList.toggle('active', i === viewIdx);
+    }
+
+    // Arrow states
+    prevBtn.classList.toggle('disabled', viewIdx === 0);
+    nextBtn.classList.toggle('disabled', viewIdx === views.length - 1);
+
+    playVisibleVideos();
+  }
+
+  // ---- Page turn animation ----
+  function turn(targetPage, direction) {
+    if (turning) return;
+    turning = true;
+
+    spread.classList.add(direction === 'fwd' ? 'turning-fwd' : 'turning-back');
+
+    setTimeout(function() {
+      current = targetPage;
+      render();
+
+      spread.style.transition = 'none';
+      spread.classList.remove('turning-fwd', 'turning-back');
+      spread.classList.add(direction === 'fwd' ? 'entering-fwd' : 'entering-back');
+      spread.offsetHeight; // force reflow
+
+      spread.style.transition = '';
+      spread.classList.remove('entering-fwd', 'entering-back');
+
+      setTimeout(function() {
+        turning = false;
+      }, 350);
+    }, 320);
+  }
+
+  // ---- Navigation ----
+  function next() {
+    var views = getViewList();
+    var vi = currentViewIndex();
+    if (vi < views.length - 1) goToView(vi + 1);
+  }
+  function prev() {
+    var vi = currentViewIndex();
+    if (vi > 0) goToView(vi - 1);
+  }
+
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+
+  // Keyboard
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
+    if (e.key === 'Home') { e.preventDefault(); goToView(0); }
+    if (e.key === 'End') { e.preventDefault(); goToView(getViewList().length - 1); }
+  });
+
+  // Touch / swipe
+  var touchStartX = 0, touchStartY = 0;
+  viewer.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  viewer.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    var dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      dx < 0 ? next() : prev();
+    }
+  }, { passive: true });
+
+  // Click on left/right halves of viewer
+  viewer.addEventListener('click', function(e) {
+    if (e.target.closest('.nav-arrow, .mode-btn, .dot, .branding, a')) return;
+    var rect = viewer.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    if (x < rect.width * 0.25) prev();
+    else if (x > rect.width * 0.75) next();
+  });
+
+  // ---- Mode toggle ----
+  function setMode(m) {
+    mode = m;
+    localStorage.setItem('offscreen-view-mode', m);
+    singleBtn.classList.toggle('active', m === 'single');
+    spreadBtn.classList.toggle('active', m === 'spread');
+    buildDots();
+    render();
+  }
+  singleBtn.addEventListener('click', function() { setMode('single'); });
+  spreadBtn.addEventListener('click', function() { setMode('spread'); });
+
+  // ---- Auto-detect: use spread on wide screens ----
+  function autoMode() {
+    if (window.innerWidth < 900) {
+      if (mode === 'spread') setMode('single');
+      spreadBtn.parentElement.style.display = 'none';
+    } else {
+      spreadBtn.parentElement.style.display = '';
+    }
+  }
+
+  // ---- Restore mode from localStorage ----
+  function initMode() {
+    var saved = localStorage.getItem('offscreen-view-mode');
+    if (saved === 'spread' && window.innerWidth >= 900) {
+      mode = 'spread';
+    } else {
+      mode = 'single';
+    }
+    singleBtn.classList.toggle('active', mode === 'single');
+    spreadBtn.classList.toggle('active', mode === 'spread');
+  }
+
+  // ---- Visibility change: pause videos when tab is hidden ----
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      pauseAllVideos();
+    } else {
+      playVisibleVideos();
+    }
+  });
+
+  // ---- Init ----
+  initMode();
+  autoMode();
+  window.addEventListener('resize', autoMode);
+  buildDots();
+  render();
+})();
+</script>
+</body>
+</html>

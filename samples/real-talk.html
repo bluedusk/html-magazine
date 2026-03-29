@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REAL TALK — Your Brain's Got a Whole Pharmacy</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --pop: #C8FF00;
+  --pop-dark: #9ACC00;
+  --black: #111;
+  --white: #FAFAFA;
+  --gray: #666;
+  --page-h: 92vh;
+  --page-w: calc(92vh / 1.414);
+  --font-body: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-mono: 'Courier New', Courier, monospace;
+  --radius: 16px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  font-family: var(--font-body);
+  background: linear-gradient(135deg, #f0f0f0 0%, #e8ffe0 50%, #f0f0f0 100%);
+  overflow: hidden;
+  color: var(--black);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============ MAGAZINE CONTAINER ============ */
+.magazine-viewport {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  user-select: none;
+}
+
+.magazine-spread {
+  display: flex; align-items: center; justify-content: center;
+  height: var(--page-h);
+  gap: 0;
+  position: relative;
+}
+
+/* ============ PAGE ============ */
+.page {
+  width: var(--page-w);
+  height: var(--page-h);
+  background: var(--white);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: none;
+}
+.page.visible { display: block; }
+
+/* Gutter shadows */
+.page.left-page {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  box-shadow: inset -20px 0 30px -15px rgba(0,0,0,0.08), -4px 0 20px rgba(0,0,0,0.1);
+}
+.page.right-page {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  box-shadow: inset 20px 0 30px -15px rgba(0,0,0,0.08), 4px 0 20px rgba(0,0,0,0.1);
+}
+.page.single-page {
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+}
+
+/* Page numbers */
+.page-num {
+  position: absolute; bottom: 20px;
+  font-family: var(--font-body);
+  font-size: 11px; color: var(--gray);
+  letter-spacing: 0.05em;
+}
+.page-num.left { left: 24px; }
+.page-num.right { right: 24px; }
+
+/* ============ NAVIGATION ============ */
+.nav-btn {
+  position: fixed; top: 50%; transform: translateY(-50%);
+  width: 48px; height: 80px;
+  background: rgba(0,0,0,0.15);
+  border: none; border-radius: var(--radius);
+  color: white; font-size: 24px;
+  cursor: pointer; z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, opacity 0.2s;
+  backdrop-filter: blur(4px);
+}
+.nav-btn:hover { background: rgba(0,0,0,0.35); }
+.nav-btn:active { transform: translateY(-50%) scale(0.95); }
+.nav-btn.prev { left: 16px; }
+.nav-btn.next { right: 16px; }
+.nav-btn:disabled { opacity: 0; pointer-events: none; }
+
+/* Page indicator */
+.page-indicator {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-body);
+  font-size: 12px; color: var(--gray);
+  background: rgba(255,255,255,0.8);
+  padding: 6px 16px; border-radius: var(--radius-pill);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  letter-spacing: 0.1em;
+}
+
+/* View toggle */
+.view-toggle {
+  position: fixed; top: 16px; right: 16px;
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  font-family: var(--font-body);
+  font-size: 11px; letter-spacing: 0.05em;
+  cursor: pointer; z-index: 100;
+  transition: all 0.2s;
+  color: var(--black);
+  backdrop-filter: blur(8px);
+}
+.view-toggle:hover { background: var(--pop); color: var(--black); }
+
+/* ============ COVER PAGE ============ */
+.cover {
+  background: var(--black);
+  color: white;
+  display: flex; flex-direction: column;
+  position: relative;
+  width: 100%; height: 100%;
+}
+.cover-img {
+  position: absolute; inset: 0;
+  background: url('https://images.unsplash.com/photo-1762073800992-618c7cfc2849?w=1200&q=80') center/cover no-repeat;
+  opacity: 0.5;
+}
+.cover-content {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column;
+  height: 100%; padding: 5%;
+}
+.cover-masthead {
+  font-family: var(--font-body);
+  font-size: clamp(18px, 3vw, 28px);
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--pop);
+  margin-bottom: auto;
+}
+.cover-kicker {
+  display: inline-block;
+  background: var(--pop);
+  color: var(--black);
+  font-size: clamp(10px, 1.5vw, 14px);
+  font-weight: 800;
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+  width: fit-content;
+}
+.cover-headline {
+  font-family: var(--font-body);
+  font-size: clamp(24px, 5.5vw, 56px);
+  font-weight: 900;
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+.cover-headline .pop { color: var(--pop); }
+.cover-headline .tilt { display: inline-block; transform: rotate(-2deg); }
+.cover-deck {
+  font-size: clamp(12px, 1.8vw, 18px);
+  font-weight: 400;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.75);
+  max-width: 80%;
+  margin-bottom: 24px;
+}
+.cover-issue {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  margin-top: auto;
+}
+.cover-photo-credit {
+  position: absolute; bottom: 12px; right: 16px;
+  font-size: 8px; color: rgba(255,255,255,0.25);
+  z-index: 3;
+}
+
+/* ============ STICKER LABELS ============ */
+.sticker {
+  display: inline-block;
+  background: var(--pop);
+  color: var(--black);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sticker.dark {
+  background: var(--black);
+  color: var(--pop);
+}
+.sticker.outline {
+  background: transparent;
+  border: 2px solid var(--pop);
+  color: var(--pop);
+}
+
+/* ============ OPENING PAGE ============ */
+.opening {
+  padding: 8% 7%;
+  display: flex; flex-direction: column;
+  height: 100%;
+}
+.opening-kicker {
+  margin-bottom: 12px;
+}
+.opening-headline {
+  font-family: var(--font-body);
+  font-size: clamp(20px, 4vw, 38px);
+  font-weight: 900;
+  line-height: 1.05;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+.opening-deck {
+  font-size: clamp(13px, 1.8vw, 17px);
+  color: var(--gray);
+  line-height: 1.5;
+  margin-bottom: 12px;
+  font-style: italic;
+}
+.opening-byline {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--gray);
+  text-transform: lowercase;
+  margin-bottom: 24px;
+}
+.opening-lede {
+  font-size: clamp(13px, 1.6vw, 16px);
+  line-height: 1.7;
+  color: var(--black);
+}
+.opening-lede .first-word {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 900;
+  line-height: 1;
+  display: block;
+  color: var(--pop);
+  text-shadow: 2px 2px 0 var(--black);
+  margin-bottom: 4px;
+}
+.opening-lede p { margin-bottom: 14px; }
+
+/* ============ SECTION PAGES ============ */
+.section-page {
+  padding: 6% 7%;
+  display: flex; flex-direction: column;
+  height: 100%;
+}
+.section-header {
+  margin-bottom: 16px;
+}
+.section-title {
+  font-family: var(--font-body);
+  font-size: clamp(18px, 3.5vw, 34px);
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.section-subtitle {
+  font-size: clamp(10px, 1.3vw, 13px);
+  color: var(--gray);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.section-img {
+  width: 100%;
+  height: 35%;
+  min-height: 120px;
+  border-radius: var(--radius);
+  object-fit: cover;
+  margin-bottom: 14px;
+}
+.section-body {
+  font-size: clamp(11px, 1.4vw, 14px);
+  line-height: 1.7;
+  color: #333;
+  flex: 1;
+  overflow: hidden;
+}
+.section-body p { margin-bottom: 10px; }
+
+/* Pull quote */
+.pull-quote {
+  font-family: var(--font-body);
+  font-size: clamp(16px, 2.5vw, 26px);
+  font-weight: 900;
+  line-height: 1.3;
+  color: var(--black);
+  position: relative;
+  padding: 12px 16px;
+  margin: 14px 0;
+  border-radius: var(--radius-sm);
+}
+.pull-quote .highlight {
+  background: var(--pop);
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* ============ SPLIT LAYOUT ============ */
+.split-page {
+  display: flex; flex-direction: column;
+  height: 100%;
+}
+.split-top {
+  flex: 0 0 42%;
+  position: relative;
+  overflow: hidden;
+}
+.split-top img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.split-top .overlay-sticker {
+  position: absolute; top: 16px; left: 16px;
+}
+.split-bottom {
+  flex: 1;
+  padding: 5% 7%;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* ============ CLOSING PAGE ============ */
+.closing {
+  padding: 8% 7%;
+  display: flex; flex-direction: column;
+  justify-content: center;
+  background: var(--black);
+  color: white;
+  position: relative;
+  width: 100%; height: 100%;
+}
+.closing-img {
+  position: absolute; inset: 0;
+  opacity: 0.2;
+}
+.closing-img img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.closing-content {
+  position: relative; z-index: 2;
+}
+.closing-body {
+  font-size: clamp(12px, 1.5vw, 15px);
+  line-height: 1.8;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 24px;
+}
+.closing-body p { margin-bottom: 14px; }
+.closing-signoff {
+  font-size: clamp(20px, 3.5vw, 36px);
+  font-weight: 900;
+  color: var(--pop);
+  text-transform: uppercase;
+  line-height: 1.1;
+  margin-bottom: 24px;
+}
+.closing-credit {
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ============ BACK COVER ============ */
+.back-cover {
+  background: var(--pop);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 10%;
+  width: 100%; height: 100%;
+}
+.back-logo {
+  font-family: var(--font-body);
+  font-size: clamp(28px, 5vw, 52px);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--black);
+  margin-bottom: 16px;
+}
+.back-tagline {
+  font-size: clamp(11px, 1.5vw, 15px);
+  color: rgba(0,0,0,0.5);
+  letter-spacing: 0.08em;
+}
+.back-credits {
+  margin-top: auto;
+  font-size: 9px;
+  color: rgba(0,0,0,0.3);
+  letter-spacing: 0.08em;
+  line-height: 1.8;
+}
+
+/* ============ ANNOTATION STICKERS ============ */
+.annotation {
+  position: absolute;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.06em;
+  transform: rotate(var(--rot, -3deg));
+  z-index: 5;
+  pointer-events: none;
+}
+.annotation.lime { background: var(--pop); color: var(--black); }
+.annotation.dark { background: var(--black); color: var(--pop); }
+
+/* ============ BRANDING ============ */
+.branding {
+  position: fixed; bottom: 12px; right: 16px;
+  font-family: sans-serif;
+  font-size: 10px; color: rgba(0,0,0,0.2);
+  z-index: 9999; letter-spacing: 0.05em;
+}
+.branding a { color: inherit; text-decoration: none; }
+.branding a:hover { color: rgba(0,0,0,0.5); }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 1099px) {
+  .page { --page-w: min(calc(92vh / 1.414), 90vw); }
+}
+@media (max-width: 600px) {
+  .page { --page-w: 96vw; --page-h: 88vh; }
+  .nav-btn { width: 36px; height: 60px; font-size: 18px; }
+  .nav-btn.prev { left: 4px; }
+  .nav-btn.next { right: 4px; }
+  .cover-headline { font-size: clamp(22px, 8vw, 40px); }
+  .section-img { height: 28%; min-height: 90px; }
+}
+
+/* ============ PRINT ============ */
+@media print {
+  .branding, .nav-btn, .page-indicator, .view-toggle { display: none !important; }
+  .page { page-break-after: always; height: auto; width: 100%; box-shadow: none !important; border-radius: 0 !important; display: block !important; }
+  body { background: white; overflow: visible; }
+  .magazine-viewport { height: auto; overflow: visible; }
+  .magazine-spread { flex-wrap: wrap; height: auto; }
+}
+
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="magazine-viewport" id="viewport">
+  <div class="magazine-spread" id="spread">
+
+    <!-- PAGE 1: COVER -->
+    <div class="page" data-page="1">
+      <div class="cover">
+        <div class="cover-img"></div>
+        <div class="cover-content">
+          <div class="cover-masthead">REAL TALK</div>
+          <div style="margin-top:auto;">
+            <div class="cover-kicker">MAIN CHARACTER ENERGY</div>
+            <div class="cover-headline">
+              YOUR BRAIN'S<br>
+              GOT A <span class="pop tilt">WHOLE</span><br>
+              <span class="pop">PHARMACY</span>
+            </div>
+            <div class="cover-deck">The four chemicals running your mood, your drive, and your entire vibe &mdash; decoded.</div>
+            <div class="cover-issue">Issue 01 &middot; March 2026 &middot; The Chemistry Issue</div>
+          </div>
+        </div>
+        <div class="cover-photo-credit">Photo: Bhanu Singh / Unsplash</div>
+      </div>
+      <span class="page-num right" style="color:rgba(255,255,255,0.3);">1</span>
+    </div>
+
+    <!-- PAGE 2: OPENING / LEDE -->
+    <div class="page" data-page="2">
+      <div class="opening">
+        <div class="opening-kicker"><span class="sticker">REAL TALK</span></div>
+        <h1 class="opening-headline">Your Brain's Got a Whole Pharmacy and You're Not Even Using It Right</h1>
+        <p class="opening-deck">The four chemicals running your mood, your drive, and your entire vibe &mdash; decoded.</p>
+        <p class="opening-byline">words by Staff Writer &middot; March 28, 2026</p>
+        <div class="opening-lede">
+          <p><span class="first-word">OKAY</span> so here's the thing nobody told you in school &mdash; your brain is literally running a drug operation. Not the sketchy kind. The kind that decides whether you wake up feeling like you could take on the world or like you'd rather stay under the covers forever.</p>
+          <p>Four chemicals. That's basically it. Dopamine, oxytocin, serotonin, endorphins. They've got different jobs, different triggers, and honestly? Most of us are accidentally sabotaging at least two of them on the daily.</p>
+          <p>I spent the last month going deep on this &mdash; talking to neuroscientists, reading papers I had no business reading, and experimenting on myself like some kind of mood hacker. Here's what actually matters.</p>
+        </div>
+      </div>
+      <div class="annotation lime" style="top:12px;right:16px;--rot:-4deg;">THE CHEMISTRY ISSUE</div>
+      <span class="page-num left">2</span>
+    </div>
+
+    <!-- PAGE 3: DOPAMINE -->
+    <div class="page" data-page="3">
+      <div class="split-page">
+        <div class="split-top">
+          <img src="https://images.unsplash.com/photo-1759834857374-2f0a09dc6daf?w=900&q=80" alt="Runner with motion blur on urban street" loading="lazy">
+          <div class="overlay-sticker"><span class="sticker dark">01 / DOPAMINE</span></div>
+        </div>
+        <div class="split-bottom">
+          <div class="section-header">
+            <h2 class="section-title">DOPAMINE</h2>
+            <p class="section-subtitle">The one that won't let you sit still</p>
+          </div>
+          <div class="section-body">
+            <p>Forget everything you heard about dopamine being the "pleasure chemical." That's the TikTok version. The real story is way more interesting.</p>
+            <p>Dopamine is <strong>anticipation</strong>. It's the buzz you feel before the thing happens, not after. It's why planning a trip feels better than taking one. Why the notification sound hits harder than the actual message. Your brain evolved to chase &mdash; dopamine is the chase itself.</p>
+            <p>Here's how the loop works: your brain spots something it wants. Dopamine floods in, giving you that restless energy. You do the thing. Small hit of satisfaction. Then it immediately starts looking for the next thing. That's not a bug &mdash; it's the entire operating system.</p>
+          </div>
+        </div>
+      </div>
+      <div class="annotation dark" style="bottom:60px;right:20px;--rot:2deg;">CHASE MODE: ON</div>
+      <span class="page-num right">3</span>
+    </div>
+
+    <!-- PAGE 4: DOPAMINE continued + PULL QUOTE -->
+    <div class="page" data-page="4">
+      <div class="section-page">
+        <div class="pull-quote">
+          <span class="highlight">"You're burning through your dopamine budget on micro-rewards that leave you feeling emptier than before."</span>
+        </div>
+        <div class="section-body" style="flex:1;">
+          <p>The problem? We've hijacked this ancient system with infinite scroll, same-day delivery, and algorithmic feeds designed by people who literally studied this mechanism. You're burning through your dopamine budget on micro-rewards that leave you feeling emptier than before.</p>
+          <p>The fix isn't complicated: pick harder goals. Seriously. Your brain respects the struggle. A completed coding sprint, a personal best at the gym, finishing that thing you've been avoiding for weeks &mdash; that dopamine hit is built different because you earned it.</p>
+        </div>
+        <div style="margin-top:auto; padding:16px; background:#f5f5f5; border-radius:var(--radius);font-size:11px;line-height:1.6;">
+          <div class="sticker" style="margin-bottom:8px;">HOW IT WORKS</div>
+          <p style="margin-bottom:4px;"><strong>1.</strong> Brain spots a goal</p>
+          <p style="margin-bottom:4px;"><strong>2.</strong> Dopamine spikes &rarr; restless energy</p>
+          <p style="margin-bottom:4px;"><strong>3.</strong> You achieve the goal</p>
+          <p><strong>4.</strong> Small satisfaction hit &rarr; loop resets</p>
+        </div>
+      </div>
+      <div class="annotation lime" style="top:16px;left:16px;--rot:-2deg;">DOPAMINE LOOP</div>
+      <span class="page-num left">4</span>
+    </div>
+
+    <!-- PAGE 5: OXYTOCIN -->
+    <div class="page" data-page="5">
+      <div class="split-page">
+        <div class="split-top">
+          <img src="https://images.unsplash.com/photo-1489942986787-cded4ecf962e?w=900&q=80" alt="Two boys hugging while laughing" loading="lazy">
+          <div class="overlay-sticker"><span class="sticker dark">02 / OXYTOCIN</span></div>
+        </div>
+        <div class="split-bottom">
+          <div class="section-header">
+            <h2 class="section-title">OXYTOCIN</h2>
+            <p class="section-subtitle">The chemical that proves you need people</p>
+          </div>
+          <div class="section-body">
+            <p>Call it the cuddle hormone if you want &mdash; it won't be offended. But oxytocin does way more than make hugs feel nice.</p>
+            <p>This is your brain's trust signal. When oxytocin flows, cortisol drops. Your body literally switches from defense mode to <strong>connection mode</strong>. Your heart rate slows, your gut relaxes, your brain starts reading social cues better. You become a better listener, a better friend, a better human &mdash; chemically.</p>
+            <p>And it doesn't require grand gestures. A real conversation. Playing with a dog. A long hug &mdash; we're talking 20 seconds minimum, which feels weirdly long until it doesn't.</p>
+          </div>
+        </div>
+      </div>
+      <div class="annotation lime" style="bottom:70px;left:20px;--rot:-3deg;">TRUST SIGNAL</div>
+      <span class="page-num right">5</span>
+    </div>
+
+    <!-- PAGE 6: OXYTOCIN continued + SEROTONIN intro -->
+    <div class="page" data-page="6">
+      <div class="section-page">
+        <div class="pull-quote">
+          <span class="highlight">"The loneliness epidemic isn't just a mental health talking point. It's a chemical deficit."</span>
+        </div>
+        <div class="section-body" style="margin-bottom:16px;">
+          <p>The loneliness epidemic isn't just a mental health talking point. It's a chemical deficit. Your brain needs oxytocin like your body needs water, and most of us are walking around chronically dehydrated.</p>
+        </div>
+        <div style="width:100%;height:3px;background:var(--pop);border-radius:2px;margin:10px 0;"></div>
+        <div class="section-header" style="margin-top:12px;">
+          <span class="sticker dark" style="margin-bottom:8px;display:inline-block;">03 / SEROTONIN</span>
+          <h2 class="section-title">SEROTONIN</h2>
+          <p class="section-subtitle">The quiet one holding everything together</p>
+        </div>
+        <div class="section-body" style="flex:1;">
+          <p>If dopamine is the hype, serotonin is the foundation. It's not exciting. It doesn't trend on social media. But without it, nothing else works.</p>
+          <p>Serotonin regulates your mood, your sleep, your appetite, your ability to just... feel okay about things. Not ecstatic. Not motivated. Just okay.</p>
+        </div>
+        <div class="pull-quote" style="font-size:clamp(14px,2vw,22px);">
+          <span class="highlight">"Okay is massively underrated."</span>
+        </div>
+      </div>
+      <span class="page-num left">6</span>
+    </div>
+
+    <!-- PAGE 7: SEROTONIN continued -->
+    <div class="page" data-page="7">
+      <div class="split-page">
+        <div class="split-top">
+          <img src="https://images.unsplash.com/photo-1554279411-440148135a2b?w=900&q=80" alt="Silhouette walking beside trees during golden hour" loading="lazy">
+          <div class="overlay-sticker"><span class="sticker">GOLDEN HOUR</span></div>
+        </div>
+        <div class="split-bottom">
+          <div class="section-body">
+            <p>Here's a fact that changed how I structure my mornings: <strong>sunlight triggers serotonin production</strong>. Not through a window. Not from a screen. Actual sunlight on your actual face. That serotonin then converts to melatonin at night, which is why morning sun exposure directly improves your sleep twelve hours later. Your brain is playing the long game.</p>
+            <p>But here's the one that surprised me most &mdash; serotonin responds to status and belonging. Feeling valued in your community. Being recognized. Having a purpose. It's not vanity. It's chemistry. Your brain rewards you for mattering to other people.</p>
+          </div>
+          <div style="margin-top:auto;padding:14px;background:#FFFDE7;border-radius:var(--radius);font-size:11px;line-height:1.6;border-left:4px solid var(--pop);">
+            <strong style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;">The Sun Connection</strong><br>
+            Morning sunlight &rarr; Serotonin production &rarr; Converts to melatonin at night &rarr; Better sleep 12hrs later
+          </div>
+        </div>
+      </div>
+      <div class="annotation dark" style="top:38%;right:14px;--rot:3deg;">MOOD REGULATOR</div>
+      <span class="page-num right">7</span>
+    </div>
+
+    <!-- PAGE 8: ENDORPHINS -->
+    <div class="page" data-page="8">
+      <div class="split-page">
+        <div class="split-top">
+          <img src="https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=900&q=80" alt="People laughing and talking outside" loading="lazy">
+          <div class="overlay-sticker"><span class="sticker dark">04 / ENDORPHINS</span></div>
+        </div>
+        <div class="split-bottom">
+          <div class="section-header">
+            <h2 class="section-title">ENDORPHINS</h2>
+            <p class="section-subtitle">Your body's way of saying "I got you"</p>
+          </div>
+          <div class="section-body">
+            <p>The name literally means "endogenous morphine." Your body manufactures its own painkillers. Let that sink in.</p>
+            <p>Endorphins exist for one reason: to mask discomfort so you can keep going when it matters. Our ancestors needed this to outrun predators after getting injured. We need it to survive leg day.</p>
+            <p>The "runner's high" is real. After sustained intense exercise &mdash; about 30-40 minutes &mdash; your body floods with endorphins. That warm, floaty, everything-is-beautiful feeling? That's your body saying <em>"thanks for not dying."</em></p>
+            <p>And then there's laughter. Deep, uncontrollable, tears-streaming laughter. Belly-aching laughing is actually a mild form of physical exertion &mdash; your abs contract, your breathing goes haywire, and your body responds the same way it would to a workout. An endorphin release triggered by joy.</p>
+          </div>
+        </div>
+      </div>
+      <div class="annotation lime" style="bottom:65px;right:18px;--rot:-2deg;">RUNNER'S HIGH</div>
+      <span class="page-num left">8</span>
+    </div>
+
+    <!-- PAGE 9: CLOSING -->
+    <div class="page" data-page="9">
+      <div class="closing">
+        <div class="closing-img">
+          <img src="https://images.unsplash.com/photo-1699039506644-43319d928e4e?w=900&q=80" alt="Person standing under street light at night" loading="lazy">
+        </div>
+        <div class="closing-content">
+          <span class="sticker outline" style="margin-bottom:20px;display:inline-block;">THE TAKEAWAY</span>
+          <div class="closing-body">
+            <p>Here's what I keep coming back to: these aren't four separate systems. They're a conversation. Dopamine gets you moving. Oxytocin connects you to people. Serotonin keeps you stable. Endorphins help you push through. Mess with one and the others feel it.</p>
+            <p>The cheat code &mdash; if there is one &mdash; is embarrassingly simple. Move your body. Go outside. Talk to someone you actually care about. Do something hard on purpose. It's not a wellness influencer's morning routine. It's just chemistry.</p>
+          </div>
+          <div class="closing-signoff">Your brain already knows what it needs.<br>Maybe start listening.</div>
+          <div class="closing-credit">Photo: iwin / Unsplash &middot; Real Talk Magazine &middot; March 2026</div>
+        </div>
+      </div>
+      <span class="page-num right" style="color:rgba(255,255,255,0.3);">9</span>
+    </div>
+
+    <!-- PAGE 10: BACK COVER -->
+    <div class="page" data-page="10">
+      <div class="back-cover">
+        <div style="margin-top:auto;">
+          <div class="back-logo">REAL<br>TALK</div>
+          <div class="back-tagline">The Chemistry Issue &middot; 01</div>
+        </div>
+        <div class="back-credits" style="margin-top:auto;">
+          Words by Staff Writer<br>
+          Photography: Bhanu Singh, eowynring, Aman Shrivastava,<br>
+          Huy Phan, Priscilla Du Preez, iwin &middot; via Unsplash<br><br>
+          &copy; 2026 Real Talk Magazine
+        </div>
+      </div>
+      <span class="page-num left" style="color:rgba(0,0,0,0.2);">10</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- Navigation -->
+<button class="nav-btn prev" id="prevBtn" aria-label="Previous page">&#8249;</button>
+<button class="nav-btn next" id="nextBtn" aria-label="Next page">&#8250;</button>
+<div class="page-indicator" id="indicator"></div>
+<button class="view-toggle" id="viewToggle" aria-label="Toggle view mode">SPREAD</button>
+
+<!-- Branding -->
+<div class="branding">Built with <a href="https://github.com/bluedusk/html-magazine" target="_blank">html-magazine</a></div>
+
+<script>
+(function() {
+  var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var indicator = document.getElementById('indicator');
+  var viewToggle = document.getElementById('viewToggle');
+  var totalPages = pages.length;
+
+  var currentPage = 1;
+  var isSpread = localStorage.getItem('magazineView') !== 'single' && window.innerWidth >= 1100;
+
+  function updateView() {
+    for (var i = 0; i < pages.length; i++) {
+      pages[i].classList.remove('visible', 'left-page', 'right-page', 'single-page');
+    }
+
+    if (isSpread) {
+      viewToggle.textContent = 'SINGLE';
+      if (currentPage === 1) {
+        pages[0].classList.add('visible', 'single-page');
+        indicator.textContent = '1 / ' + totalPages;
+      } else {
+        var leftIdx = currentPage - 1;
+        if (leftIdx % 2 === 0 && leftIdx > 0) leftIdx--;
+        if (leftIdx < 1) leftIdx = 1;
+
+        if (pages[leftIdx]) {
+          pages[leftIdx].classList.add('visible', 'left-page');
+        }
+        if (pages[leftIdx + 1]) {
+          pages[leftIdx + 1].classList.add('visible', 'right-page');
+        }
+
+        currentPage = leftIdx + 1;
+        var leftNum = leftIdx + 1;
+        var rightNum = pages[leftIdx + 1] ? leftIdx + 2 : leftIdx + 1;
+        indicator.textContent = leftNum + '\u2013' + rightNum + ' / ' + totalPages;
+      }
+    } else {
+      viewToggle.textContent = 'SPREAD';
+      if (pages[currentPage - 1]) {
+        pages[currentPage - 1].classList.add('visible', 'single-page');
+      }
+      indicator.textContent = currentPage + ' / ' + totalPages;
+    }
+
+    prevBtn.disabled = currentPage <= 1;
+    if (isSpread) {
+      nextBtn.disabled = currentPage === 1 ? false : currentPage + 1 >= totalPages;
+    } else {
+      nextBtn.disabled = currentPage >= totalPages;
+    }
+  }
+
+  function goNext() {
+    if (isSpread) {
+      if (currentPage === 1) {
+        currentPage = 2;
+      } else {
+        currentPage += 2;
+        if (currentPage > totalPages) currentPage = totalPages;
+      }
+    } else {
+      if (currentPage < totalPages) currentPage++;
+    }
+    updateView();
+  }
+
+  function goPrev() {
+    if (isSpread) {
+      if (currentPage <= 2) {
+        currentPage = 1;
+      } else {
+        currentPage -= 2;
+        if (currentPage < 2) currentPage = 1;
+      }
+    } else {
+      if (currentPage > 1) currentPage--;
+    }
+    updateView();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+
+  viewToggle.addEventListener('click', function() {
+    isSpread = !isSpread;
+    localStorage.setItem('magazineView', isSpread ? 'spread' : 'single');
+    updateView();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev(); }
+  });
+
+  var touchStartX = 0;
+  var touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    var dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      if (dx < 0) goNext(); else goPrev();
+    }
+  }, { passive: true });
+
+  window.addEventListener('resize', function() {
+    var stored = localStorage.getItem('magazineView');
+    if (!stored) {
+      isSpread = window.innerWidth >= 1100;
+    }
+    updateView();
+  });
+
+  updateView();
+})();
+</script>
+
+</body>
+</html>

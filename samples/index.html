@@ -9,631 +9,1300 @@
 <link href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Public+Sans:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/Draggable.min.js" defer></script>
 <style>
-/* ============================================================
+/* ═══════════════════════════════════════════════════════
    DESIGN TOKENS
-   ============================================================ */
+═══════════════════════════════════════════════════════ */
 :root {
-  --bg: #08080a;
-  --bg-card: #111114;
-  --bg-card-hover: #18181c;
-  --surface: #1a1a1f;
-  --text: #e8e6e1;
-  --text-dim: #777;
-  --text-muted: #444;
-  --accent-red: #C8102E;
-  --accent-gold: #c9a96e;
-  --accent-teal: #2A6B6B;
-  --accent-yellow: #FFCC00;
-  --font-display: 'Libre Bodoni', Georgia, serif;
-  --font-ui: 'Public Sans', -apple-system, Helvetica, Arial, sans-serif;
+  --bg:         #06050a;
+  --bg2:        #0d0c14;
+  --text:       #e8e5df;
+  --dim:        #6a6660;
+  --muted:      #2a2828;
+  --gold:       #c9a96e;
+  --gold-light: #e8cfa0;
+  --red:        #C8102E;
+  --warm:       #ff8c42;
+
+  /* Wood palette */
+  --wood-top:   #3d2e1e;
+  --wood-mid:   #2a1f13;
+  --wood-dark:  #1a1108;
+  --wood-grain: #4a3825;
+  --wood-light: #6b4f32;
+  --wood-edge:  rgba(255,200,120,.07);
+  --wood-shadow:rgba(0,0,0,.7);
+
+  --font-d: 'Libre Bodoni', Georgia, serif;
+  --font-u: 'Public Sans', -apple-system, Helvetica, Arial, sans-serif;
+
+  /* magazine dimensions */
+  --mag-w: clamp(130px, 15vw, 185px);
+  --mag-aspect: 210 / 297;
 }
 
-/* ============================================================
-   RESET
-   ============================================================ */
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: auto; }
+
 body {
-  font-family: var(--font-ui);
+  font-family: var(--font-u);
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ============================================================
+/* ═══════════════════════════════════════════════════════
+   FILM GRAIN
+═══════════════════════════════════════════════════════ */
+#grain {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 9500;
+  mix-blend-mode: overlay;
+  opacity: .045;
+}
+#grain::before {
+  content: '';
+  position: absolute; inset: -100%;
+  width: 300%; height: 300%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
+  animation: grainShift 6s steps(8) infinite;
+}
+@keyframes grainShift {
+  0%   { transform: translate(0, 0); }
+  12%  { transform: translate(-4%, -8%); }
+  25%  { transform: translate(7%, 3%); }
+  37%  { transform: translate(-6%, 12%); }
+  50%  { transform: translate(10%, -5%); }
+  62%  { transform: translate(-3%, 9%); }
+  75%  { transform: translate(5%, -12%); }
+  87%  { transform: translate(-9%, 6%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ═══════════════════════════════════════════════════════
+   AMBIENT + SPOTLIGHT
+═══════════════════════════════════════════════════════ */
+#ambient {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 1;
+  transition: background 1s ease;
+}
+#spotlight {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 2;
+  background: radial-gradient(
+    ellipse 600px 400px at 50% -100px,
+    rgba(201,169,110,.06) 0%,
+    transparent 70%
+  );
+  transition: background .1s linear;
+}
+#vignette {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 3;
+  background: radial-gradient(
+    ellipse 100% 100% at 50% 50%,
+    transparent 50%,
+    rgba(0,0,0,.55) 100%
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
    HERO
-   ============================================================ */
+═══════════════════════════════════════════════════════ */
 .hero {
-  height: 100vh;
-  height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  height: 100vh; height: 100dvh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
   text-align: center;
-  position: relative;
+  position: relative; z-index: 10;
   overflow: hidden;
 }
 
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(200, 16, 46, 0.06) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 60% at 30% 70%, rgba(201, 169, 110, 0.04) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-.hero-label {
-  font-family: var(--font-ui);
-  font-size: clamp(10px, 1.2vw, 13px);
+.hero-eyebrow {
+  font-size: clamp(9px, 1vw, 11px);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.4em;
-  color: var(--text-dim);
-  margin-bottom: 24px;
+  letter-spacing: .65em;
+  color: var(--dim);
+  margin-bottom: 36px;
   opacity: 0;
 }
 
 .hero-title {
-  font-family: var(--font-display);
-  font-size: clamp(48px, 10vw, 140px);
+  font-family: var(--font-d);
+  font-size: clamp(64px, 13vw, 172px);
   font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 0.9;
-  color: var(--text);
-  opacity: 0;
+  letter-spacing: -.03em;
+  line-height: .84;
+  display: flex; flex-direction: column; align-items: center;
+  gap: .05em;
 }
-
-.hero-title em {
+.hero-title .line {
+  display: flex; overflow: hidden;
+}
+.hero-title .char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(110%) rotateX(-40deg);
+  transform-origin: 50% 100%;
+}
+.hero-title .italic-line {
   font-style: italic;
-  color: var(--accent-red);
+  color: var(--gold);
 }
 
+.hero-rule {
+  width: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 36px 0 20px;
+}
 .hero-sub {
-  font-family: var(--font-ui);
-  font-size: clamp(14px, 1.5vw, 18px);
+  font-size: clamp(12px, 1.2vw, 15px);
   font-weight: 300;
-  color: var(--text-dim);
-  margin-top: 24px;
-  letter-spacing: 0.08em;
+  letter-spacing: .18em;
+  color: var(--dim);
   opacity: 0;
-}
-
-.hero-line {
-  width: 1px;
-  height: 0;
-  background: var(--text-muted);
-  margin-top: 48px;
-}
-
-.hero-scroll {
-  font-family: var(--font-ui);
-  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.3em;
-  color: var(--text-muted);
-  margin-top: 16px;
+}
+.hero-scroll {
+  position: absolute;
+  bottom: 48px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
   opacity: 0;
 }
-
-/* ============================================================
-   GALLERY
-   ============================================================ */
-.gallery {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: clamp(40px, 8vw, 100px) clamp(20px, 4vw, 60px);
+.hero-scroll-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .5em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hero-scroll-line {
+  width: 1px; height: 0;
+  background: var(--muted);
 }
 
-.gallery-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: clamp(32px, 5vw, 64px);
-  border-bottom: 1px solid var(--surface);
-  padding-bottom: 16px;
+/* hero parallax bg rings */
+.hero-rings {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  z-index: -1;
 }
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(201,169,110,.04);
+}
+.ring-1 { width: 400px; height: 400px; }
+.ring-2 { width: 700px; height: 700px; border-color: rgba(201,169,110,.025); }
+.ring-3 { width: 1100px; height: 1100px; border-color: rgba(201,169,110,.015); }
 
-.gallery-title {
-  font-family: var(--font-ui);
-  font-size: clamp(11px, 1.1vw, 13px);
+/* ═══════════════════════════════════════════════════════
+   STORE SECTION HEADER
+═══════════════════════════════════════════════════════ */
+.store-header {
+  text-align: center;
+  padding: clamp(80px, 12vw, 140px) 0 clamp(48px, 6vw, 72px);
+  position: relative; z-index: 10;
+}
+.store-label {
+  font-size: clamp(9px, 1vw, 11px);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.3em;
-  color: var(--text-dim);
+  letter-spacing: .6em;
+  color: var(--gold);
+  margin-bottom: 16px;
+  opacity: 0; transform: translateY(20px);
+}
+.store-title {
+  font-family: var(--font-d);
+  font-size: clamp(32px, 5vw, 64px);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text);
+  opacity: 0; transform: translateY(30px);
+}
+.store-count {
+  font-size: clamp(11px, 1.1vw, 13px);
+  font-weight: 300;
+  color: var(--dim);
+  letter-spacing: .3em;
+  margin-top: 14px;
+  text-transform: uppercase;
+  opacity: 0;
 }
 
-.gallery-count {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
+/* ═══════════════════════════════════════════════════════
+   BOOKSTORE ENVIRONMENT
+═══════════════════════════════════════════════════════ */
+.store {
+  position: relative; z-index: 10;
+  padding: clamp(60px, 10vw, 120px) 0 clamp(80px, 12vw, 140px);
+  min-height: 100vh;
 }
 
-/* ============================================================
-   MAGAZINE CARDS
-   ============================================================ */
-.magazines {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
-  gap: clamp(20px, 3vw, 40px);
-}
-
-.mag-card {
+/* ── Shelf unit ── */
+.shelf-unit {
   position: relative;
-  border-radius: 4px;
-  overflow: hidden;
-  cursor: pointer;
+  margin-bottom: clamp(64px, 9vw, 110px);
+}
+.shelf-unit-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .55em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-align: center;
+  margin-bottom: clamp(20px, 3vw, 32px);
+  opacity: 0; transform: translateY(12px);
+}
+
+/* ── Shelf track (horizontal scroll container) ── */
+.shelf-track-outer {
+  position: relative;
+  /* left/right fade masks */
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    black 5%,
+    black 95%,
+    transparent 100%
+  );
+}
+.shelf-track {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(18px, 2.5vw, 32px);
+  padding: clamp(32px, 5vw, 56px) clamp(48px, 8vw, 120px) 0;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  cursor: grab;
+  -ms-overflow-style: none; scrollbar-width: none;
+}
+.shelf-track::-webkit-scrollbar { display: none; }
+.shelf-track.dragging { cursor: grabbing; }
+
+/* ── Shelf plank ── */
+.shelf-plank {
+  position: relative;
+  height: clamp(14px, 1.8vw, 22px);
+  margin: 0 clamp(20px, 4vw, 60px);
+  border-radius: 3px 3px 0 0;
+  opacity: 0;
+  overflow: visible;
+
+  /* Multi-layer wood grain */
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 18px,
+      rgba(0,0,0,.04) 18px,
+      rgba(0,0,0,.04) 20px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 40px,
+      rgba(255,190,100,.025) 40px,
+      rgba(255,190,100,.025) 42px
+    ),
+    linear-gradient(
+      180deg,
+      var(--wood-light) 0%,
+      var(--wood-top)   15%,
+      var(--wood-mid)   60%,
+      var(--wood-dark)  100%
+    );
+
+  box-shadow:
+    0 2px  0px rgba(255,200,120,.06),      /* top edge highlight */
+    0 4px  12px rgba(0,0,0,.5),
+    0 12px 32px rgba(0,0,0,.4),
+    0 24px 48px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,200,120,.08);
+}
+
+/* Plank top-edge bevel */
+.shelf-plank::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 3%,
+    rgba(255,210,130,.15) 20%,
+    rgba(255,210,130,.22) 50%,
+    rgba(255,210,130,.15) 80%,
+    transparent 97%
+  );
+  border-radius: 2px 2px 0 0;
+}
+
+/* Plank bottom shadow drop */
+.shelf-plank::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  height: 40px;
+  background: linear-gradient(
+    180deg,
+    rgba(0,0,0,.45) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Light sweep animation on plank */
+.plank-sweep {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,220,160,.09) 45%,
+    rgba(255,220,160,.14) 50%,
+    rgba(255,220,160,.09) 55%,
+    transparent 100%
+  );
+  transform: translateX(-110%);
+  pointer-events: none;
+}
+
+/* ── Wall behind shelves ── */
+.shelf-wall {
+  position: absolute;
+  top: 0; bottom: 0; left: 0; right: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(40,25,12,.25) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAGAZINE CARD
+═══════════════════════════════════════════════════════ */
+.mag {
+  position: relative;
+  width: var(--mag-w);
+  aspect-ratio: var(--mag-aspect);
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  display: block;
   text-decoration: none;
   color: inherit;
-  display: block;
+  cursor: pointer;
+
+  transform-style: preserve-3d;
+  transform: perspective(1400px) rotateY(-9deg) rotateX(1.5deg);
+  transform-origin: center bottom;
+
+  transition:
+    transform   .6s cubic-bezier(.34,1.56,.64,1),
+    box-shadow  .6s cubic-bezier(.34,1.56,.64,1);
+
+  box-shadow:
+    -5px  8px 20px rgba(0,0,0,.6),
+    -2px  3px  6px rgba(0,0,0,.35),
+     0px  0px  1px rgba(0,0,0,.8);
+
   opacity: 0;
-  transform: translateY(40px);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 }
 
-.mag-card:hover {
-  transform: translateY(-4px);
+.mag:hover {
+  transform:
+    perspective(1400px)
+    rotateY(0deg) rotateX(0deg)
+    translateY(-44px) scale(1.14);
+  box-shadow:
+    0  40px 80px rgba(0,0,0,.65),
+    0  16px 30px rgba(0,0,0,.4),
+    0   4px  8px rgba(0,0,0,.3);
+  z-index: 100;
 }
 
-.mag-card:hover .mag-cover {
-  transform: scale(1.03);
+/* Spine */
+.mag-spine {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: clamp(6px, .8vw, 10px);
+  z-index: 5;
+  border-radius: 2px 0 0 2px;
+  box-shadow:
+    2px 0 8px rgba(0,0,0,.5) inset,
+    -1px 0 0 rgba(255,255,255,.04);
 }
 
-.mag-card:hover .mag-shine {
-  opacity: 1;
+/* Pages edge – right side */
+.mag-pages {
+  position: absolute;
+  right: -2px; top: 4px; bottom: 4px;
+  width: clamp(5px, .65vw, 9px);
+  z-index: 1;
+  border-radius: 0 2px 2px 0;
+  background:
+    repeating-linear-gradient(
+      to right,
+      #f5f0e8,
+      #f5f0e8 1.2px,
+      #ddd8d0 1.2px,
+      #ddd8d0 2.4px
+    );
+  box-shadow: -1px 0 4px rgba(0,0,0,.2);
+  opacity: .55;
+  transition: opacity .4s, width .4s;
+}
+.mag:hover .mag-pages {
+  opacity: .9;
+  width: clamp(6px, .85vw, 11px);
 }
 
-/* Cover */
+/* Cover wrapper (holds iframe) */
 .mag-cover {
-  aspect-ratio: 210 / 297;
-  position: relative;
+  position: absolute; inset: 0;
   overflow: hidden;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2px;
+  z-index: 2;
 }
 
-.mag-cover-bg {
+/* iframe scaled to fit cover */
+.mag-cover iframe {
   position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: clamp(24px, 5%, 48px);
-  text-align: center;
-}
-
-/* Glossy shine effect on hover */
-.mag-shine {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    115deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.05) 45%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.05) 55%,
-    transparent 70%
-  );
-  opacity: 0;
-  transition: opacity 0.4s;
+  top: 0; left: 0;
+  width: 1280px;
+  height: 1810px; /* 1280 * 297/210 = ~1810 */
+  border: none;
   pointer-events: none;
-  z-index: 10;
+  transform-origin: top left;
+  /* scale set by JS per card size */
 }
 
-/* Card info below cover */
-.mag-info {
-  padding: clamp(12px, 2vw, 20px) 0;
+/* iframe loading fallback */
+.mag-fallback {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: clamp(10px, 8%, 24px);
+  text-align: center;
+  /* background set per cover */
 }
-
-.mag-name {
-  font-family: var(--font-display);
-  font-size: clamp(18px, 2vw, 24px);
-  font-weight: 500;
-  margin-bottom: 4px;
+.mag-fallback .fb-title {
+  font-family: var(--font-d);
+  font-size: clamp(14px, 2vw, 22px);
+  line-height: 1.1;
+  margin-bottom: 8px;
 }
-
-.mag-desc {
-  font-family: var(--font-ui);
-  font-size: clamp(12px, 1.1vw, 14px);
-  color: var(--text-dim);
-  font-weight: 300;
-}
-
-.mag-tag {
-  display: inline-block;
-  font-family: var(--font-ui);
-  font-size: 10px;
+.mag-fallback .fb-sub {
+  font-family: var(--font-u);
+  font-size: clamp(7px, .8vw, 9px);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  padding: 4px 10px;
-  border-radius: 2px;
-  margin-top: 8px;
+  letter-spacing: .2em;
+  opacity: .55;
 }
-
-/* ============================================================
-   INDIVIDUAL COVER STYLES
-   ============================================================ */
-
-/* NOIR — Fashion */
-.cover-noir {
-  background: #000;
-}
-.cover-noir .cover-masthead {
-  font-family: 'Libre Bodoni', Georgia, serif;
-  font-size: clamp(36px, 6vw, 56px);
-  font-weight: 400;
-  letter-spacing: 0.25em;
-  color: #fff;
-  text-transform: uppercase;
-  margin-bottom: 16px;
-}
-.cover-noir .cover-tagline {
-  font-family: var(--font-ui);
-  font-size: clamp(9px, 1vw, 11px);
-  text-transform: uppercase;
-  letter-spacing: 0.3em;
-  color: #555;
-}
-.cover-noir .cover-accent {
-  width: 30px;
-  height: 2px;
-  background: var(--accent-red);
-  margin: 16px auto;
-}
-.cover-noir .cover-issue {
-  font-family: var(--font-ui);
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  color: #333;
-  position: absolute;
-  bottom: clamp(16px, 3%, 28px);
-}
-
-/* WANDERLUST — Travel */
-.cover-wanderlust {
-  background: linear-gradient(160deg, #1a1612, #2a1f18, #1a1a1a);
-}
-.cover-wanderlust .cover-masthead {
-  font-family: 'Libre Bodoni', Georgia, serif;
-  font-size: clamp(28px, 5vw, 44px);
-  font-weight: 400;
-  font-style: italic;
-  color: #F0EBE3;
-  margin-bottom: 8px;
-}
-.cover-wanderlust .cover-tagline {
-  font-family: var(--font-ui);
-  font-size: clamp(9px, 1vw, 11px);
-  text-transform: uppercase;
-  letter-spacing: 0.25em;
-  color: #B8432F;
-}
-.cover-wanderlust .cover-accent {
-  width: 40px;
+.mag-fallback .fb-rule {
+  width: 20px;
   height: 1px;
-  background: #9E7C2D;
-  margin: 14px auto;
-}
-.cover-wanderlust .cover-issue {
-  font-family: var(--font-ui);
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  color: #555;
-  position: absolute;
-  bottom: clamp(16px, 3%, 28px);
+  margin: 8px auto;
 }
 
-/* TERRA — NatGeo */
-.cover-terra {
-  background: #0A0A0A;
-  border: 3px solid var(--accent-yellow);
+/* Gloss sheen overlay */
+.mag-gloss {
+  position: absolute; inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background: linear-gradient(
+    118deg,
+    rgba(255,255,255,.0)  20%,
+    rgba(255,255,255,.07) 42%,
+    rgba(255,255,255,.13) 50%,
+    rgba(255,255,255,.07) 58%,
+    rgba(255,255,255,.0)  78%
+  );
+  opacity: 0;
+  transition: opacity .35s;
+  border-radius: 2px;
 }
-.cover-terra .cover-border-inner {
+.mag:hover .mag-gloss { opacity: 1; }
+
+/* Cast shadow on plank */
+.mag-shadow {
   position: absolute;
-  inset: 6px;
-  border: 1px solid rgba(255, 204, 0, 0.2);
+  bottom: -14px;
+  left: 8%; right: 8%;
+  height: 18px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0,0,0,.6) 0%,
+    transparent 70%
+  );
+  filter: blur(5px);
+  z-index: 0;
+  transition: all .5s;
+}
+.mag:hover .mag-shadow {
+  bottom: -22px;
+  left: 2%; right: 2%;
+  filter: blur(12px);
+  opacity: .75;
+}
+
+/* Magazine title tooltip */
+.mag-title-tag {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  background: rgba(10,8,5,.9);
+  border: 1px solid rgba(201,169,110,.2);
+  color: var(--gold-light);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s, transform .3s;
+  z-index: 200;
+}
+.mag-title-tag::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(201,169,110,.3);
+}
+.mag:hover .mag-title-tag {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ═══════════════════════════════════════════════════════
+   INDIVIDUAL COVER THEMES (for fallback + spine colors)
+═══════════════════════════════════════════════════════ */
+/* 1. OFFSCREEN v2 */
+.cover-1 .mag-spine             { background: linear-gradient(180deg,#b0a000,#6a5a00); }
+.cover-1 .mag-fallback          { background: #080808; }
+.cover-1 .mag-fallback .fb-title{ color: #FFE500; letter-spacing: .12em; text-transform: uppercase; }
+.cover-1 .mag-fallback .fb-rule { background: #FFE500; }
+.cover-1 .mag-fallback .fb-sub  { color: #555; }
+
+/* 2. OFFSCREEN v5 */
+.cover-2 .mag-spine             { background: linear-gradient(180deg,#00c060,#005a25); }
+.cover-2 .mag-fallback          { background: #060c07; }
+.cover-2 .mag-fallback .fb-title{ color: #00FF7F; letter-spacing: .12em; text-transform: uppercase; }
+.cover-2 .mag-fallback .fb-rule { background: #00FF7F; }
+.cover-2 .mag-fallback .fb-sub  { color: #3a6a4a; }
+
+/* 3. NOIR */
+.cover-3 .mag-spine             { background: linear-gradient(180deg,#a00020,#500010); }
+.cover-3 .mag-fallback          { background: #000; }
+.cover-3 .mag-fallback .fb-title{ color: #fff; letter-spacing: .22em; text-transform: uppercase; font-weight: 400; }
+.cover-3 .mag-fallback .fb-rule { background: #C8102E; }
+.cover-3 .mag-fallback .fb-sub  { color: #444; }
+
+/* 4. WANDERLUST */
+.cover-4 .mag-spine             { background: linear-gradient(180deg,#8a6a3a,#4a3a1e); }
+.cover-4 .mag-fallback          { background: linear-gradient(160deg,#1a1512,#251d17,#1a1a1a); }
+.cover-4 .mag-fallback .fb-title{ color: #F0EBE3; font-style: italic; }
+.cover-4 .mag-fallback .fb-rule { background: #c9a96e; }
+.cover-4 .mag-fallback .fb-sub  { color: #B8432F; }
+
+/* 5. TERRA Static */
+.cover-5 .mag-spine             { background: linear-gradient(180deg,#b09000,#5a4800); }
+.cover-5 .mag-fallback          { background: #090909; border: 2px solid #FFCC00; }
+.cover-5 .mag-fallback .fb-title{ color: #fff; font-family: var(--font-u); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.cover-5 .mag-fallback .fb-sub  { color: #FFCC00; }
+.cover-5 .mag-fallback .fb-rule { display: none; }
+
+/* 6. TERRA */
+.cover-6 .mag-spine             { background: linear-gradient(180deg,#b09000,#5a4800); }
+.cover-6 .mag-fallback          { background: #090909; border: 2px solid #FFCC00; }
+.cover-6 .mag-fallback .fb-title{ color: #fff; font-family: var(--font-u); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.cover-6 .mag-fallback .fb-sub  { color: #FFCC00; }
+.cover-6 .mag-fallback .fb-rule { display: none; }
+
+/* 7. REAL TALK */
+.cover-7 .mag-spine             { background: linear-gradient(180deg,#c8601a,#6a3008); }
+.cover-7 .mag-fallback          { background: linear-gradient(150deg,#FFE500,#FF6B35); }
+.cover-7 .mag-fallback .fb-title{ color: #141414; font-family: var(--font-u); font-weight: 900; text-transform: lowercase; letter-spacing: -.02em; }
+.cover-7 .mag-fallback .fb-rule { background: #141414; }
+.cover-7 .mag-fallback .fb-sub  { color: rgba(20,20,20,.5); }
+.cover-7 .mag-pages             { background: repeating-linear-gradient(to right,#eae5dc,#eae5dc 1px,#d4cfc7 1px,#d4cfc7 2px); }
+
+/* ═══════════════════════════════════════════════════════
+   FEATURED STRIP (between shelves)
+═══════════════════════════════════════════════════════ */
+.featured-strip {
+  position: relative; z-index: 10;
+  padding: clamp(48px, 7vw, 90px) clamp(24px, 6vw, 80px);
+  display: flex;
+  align-items: center;
+  gap: clamp(24px, 4vw, 56px);
+  overflow: hidden;
+}
+.featured-strip::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(201,169,110,.03) 0%,
+    rgba(201,169,110,.01) 50%,
+    transparent 100%
+  );
   pointer-events: none;
 }
-.cover-terra .cover-masthead {
-  font-family: var(--font-ui);
-  font-size: clamp(28px, 5vw, 44px);
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  color: #fff;
-  text-transform: uppercase;
-  margin-bottom: 8px;
+.featured-bar {
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--gold), transparent);
+  flex-shrink: 0;
+  opacity: 0;
+  align-self: stretch;
 }
-.cover-terra .cover-tagline {
-  font-family: var(--font-ui);
-  font-size: clamp(9px, 1vw, 11px);
+.featured-copy {
+  flex: 1;
+  opacity: 0; transform: translateY(20px);
+}
+.featured-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .55em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.featured-headline {
+  font-family: var(--font-d);
+  font-size: clamp(24px, 3.5vw, 46px);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.12;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+.featured-body {
+  font-size: clamp(13px, 1.2vw, 15px);
   font-weight: 300;
-  letter-spacing: 0.2em;
-  color: var(--accent-yellow);
-  text-transform: uppercase;
-}
-.cover-terra .cover-issue {
-  font-family: var(--font-ui);
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  color: #555;
-  position: absolute;
-  bottom: clamp(16px, 3%, 28px);
+  line-height: 1.7;
+  color: var(--dim);
+  max-width: 480px;
 }
 
-/* ============================================================
-   TAG COLORS
-   ============================================================ */
-.tag-fashion { background: rgba(200, 16, 46, 0.15); color: var(--accent-red); }
-.tag-travel { background: rgba(184, 67, 47, 0.15); color: #B8432F; }
-.tag-nature { background: rgba(255, 204, 0, 0.15); color: var(--accent-yellow); }
-
-/* ============================================================
+/* ═══════════════════════════════════════════════════════
    FOOTER
-   ============================================================ */
+═══════════════════════════════════════════════════════ */
 .footer {
   text-align: center;
-  padding: clamp(40px, 6vw, 80px) 20px;
-  border-top: 1px solid var(--surface);
-  margin-top: clamp(40px, 6vw, 80px);
+  padding: clamp(48px, 7vw, 88px) 20px;
+  border-top: 1px solid rgba(255,255,255,.04);
+  position: relative; z-index: 10;
 }
-
+.footer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border: 1px solid rgba(201,169,110,.15);
+  border-radius: 2px;
+  margin-bottom: 20px;
+}
+.footer-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: .6;
+  animation: dotPulse 2.4s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { opacity: .3; transform: scale(1); }
+  50%       { opacity: .8; transform: scale(1.3); }
+}
+.footer-badge-text {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
 .footer-text {
-  font-family: var(--font-ui);
   font-size: 12px;
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
+  color: var(--dim);
+  letter-spacing: .08em;
 }
-
 .footer-link {
-  color: var(--text-dim);
+  color: var(--gold);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color .2s;
 }
-.footer-link:hover { color: var(--text); }
+.footer-link:hover { color: var(--gold-light); }
 
-/* ============================================================
+/* ═══════════════════════════════════════════════════════
    RESPONSIVE
-   ============================================================ */
-@media (max-width: 480px) {
-  .magazines {
-    grid-template-columns: 1fr;
-    gap: 32px;
+═══════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  :root { --mag-w: clamp(110px, 42vw, 155px); }
+  .shelf-track {
+    padding: 20px clamp(20px, 6vw, 40px) 0;
+    gap: 14px;
   }
+  .featured-strip {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .featured-bar { display: none; }
 }
 
-/* ============================================================
+/* ═══════════════════════════════════════════════════════
    REDUCED MOTION
-   ============================================================ */
+═══════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
   }
+  .mag { opacity: 1 !important; transform: none !important; }
+  .shelf-plank { opacity: 1 !important; }
+  .store-label, .store-title, .store-count,
+  .shelf-unit-label, .section-label,
+  .featured-bar, .featured-copy { opacity: 1 !important; transform: none !important; }
+  #grain { display: none; }
+  .hero-title .char { opacity: 1 !important; transform: none !important; }
+  .hero-eyebrow, .hero-sub, .hero-scroll { opacity: 1 !important; }
+  .hero-rule { width: 200px !important; }
+  .hero-scroll-line { height: 48px !important; }
 }
 </style>
 </head>
 <body>
 
-<!-- ============================================================
-     HERO
-     ============================================================ -->
-<section class="hero">
-  <div class="hero-label">Sample Gallery</div>
-  <h1 class="hero-title">HTML<em>Magazine</em></h1>
-  <p class="hero-sub">AI-generated editorial pages you can flip through</p>
-  <div class="hero-line"></div>
-  <div class="hero-scroll">Scroll</div>
-</section>
+<!-- Fixed overlays -->
+<div id="grain"></div>
+<div id="ambient"></div>
+<div id="spotlight"></div>
+<div id="vignette"></div>
 
-<!-- ============================================================
-     GALLERY
-     ============================================================ -->
-<section class="gallery">
-  <div class="gallery-header">
-    <span class="gallery-title">Issues</span>
-    <span class="gallery-count">4 samples</span>
+
+<!-- ═══ STORE ═══ -->
+<section class="store">
+
+  <!-- SHELF ONE -->
+  <div class="shelf-unit">
+
+    <div class="shelf-wall"></div>
+    <div class="shelf-track-outer">
+      <div class="shelf-track" id="shelf-1">
+
+        <!-- 1: OFFSCREEN v2 -->
+        <a href="creator-demo-v2.html" class="mag cover-1">
+          <div class="mag-spine"></div>
+          <div class="mag-pages"></div>
+          <div class="mag-cover">
+            <iframe
+              src="creator-demo-v2.html"
+              loading="lazy"
+              scrolling="no"
+              title="OFFSCREEN magazine cover"
+              tabindex="-1"
+              aria-hidden="true"
+            ></iframe>
+            <div class="mag-fallback">
+              <div class="fb-title">Off<br>screen</div>
+              <div class="fb-rule"></div>
+              <div class="fb-sub">Creator &mdash; Issue 01</div>
+            </div>
+            <div class="mag-gloss"></div>
+          </div>
+          <div class="mag-shadow"></div>
+          <div class="mag-title-tag">OFFSCREEN</div>
+        </a>
+
+        <!-- 2: OFFSCREEN v5 -->
+        <a href="creator-demo-v5.html" class="mag cover-2">
+          <div class="mag-spine"></div>
+          <div class="mag-pages"></div>
+          <div class="mag-cover">
+            <iframe
+              src="creator-demo-v5.html"
+              loading="lazy"
+              scrolling="no"
+              title="OFFSCREEN v5 magazine cover"
+              tabindex="-1"
+              aria-hidden="true"
+            ></iframe>
+            <div class="mag-fallback">
+              <div class="fb-title">Off<br>screen</div>
+              <div class="fb-rule"></div>
+              <div class="fb-sub">Creator v5 &mdash; Issue 02</div>
+            </div>
+            <div class="mag-gloss"></div>
+          </div>
+          <div class="mag-shadow"></div>
+          <div class="mag-title-tag">OFFSCREEN v5</div>
+        </a>
+
+        <!-- 3: NOIR -->
+        <a href="fashion.html" class="mag cover-3">
+          <div class="mag-spine"></div>
+          <div class="mag-pages"></div>
+          <div class="mag-cover">
+            <iframe
+              src="fashion.html"
+              loading="lazy"
+              scrolling="no"
+              title="NOIR magazine cover"
+              tabindex="-1"
+              aria-hidden="true"
+            ></iframe>
+            <div class="mag-fallback">
+              <div class="fb-title">Noir</div>
+              <div class="fb-rule"></div>
+              <div class="fb-sub">Fashion &amp; Culture &mdash; Issue 03</div>
+            </div>
+            <div class="mag-gloss"></div>
+          </div>
+          <div class="mag-shadow"></div>
+          <div class="mag-title-tag">NOIR</div>
+        </a>
+
+        <!-- 7: REAL TALK -->
+        <a href="real-talk.html" class="mag cover-7">
+          <div class="mag-spine"></div>
+          <div class="mag-pages"></div>
+          <div class="mag-cover">
+            <iframe
+              src="real-talk.html"
+              loading="lazy"
+              scrolling="no"
+              title="Real Talk magazine cover"
+              tabindex="-1"
+              aria-hidden="true"
+            ></iframe>
+            <div class="mag-fallback">
+              <div class="fb-title">real talk:<br>brain chemicals</div>
+              <div class="fb-rule"></div>
+              <div class="fb-sub">Creator &mdash; Issue 07</div>
+            </div>
+            <div class="mag-gloss"></div>
+          </div>
+          <div class="mag-shadow"></div>
+          <div class="mag-title-tag">REAL TALK</div>
+        </a>
+
+      </div><!-- /shelf-track -->
+    </div><!-- /shelf-track-outer -->
+    <div class="shelf-plank"><div class="plank-sweep"></div></div>
   </div>
 
-  <div class="magazines">
-
-    <!-- NOIR -->
-    <a href="fashion.html" class="mag-card">
-      <div class="mag-cover">
-        <div class="mag-cover-bg cover-noir">
-          <div class="cover-masthead">Noir</div>
-          <div class="cover-accent"></div>
-          <div class="cover-tagline">Fashion & Culture</div>
-          <div class="cover-issue">Issue 01</div>
-        </div>
-        <div class="mag-shine"></div>
-      </div>
-      <div class="mag-info">
-        <div class="mag-name">Noir</div>
-        <div class="mag-desc">Monochrome editorial inspired by Vogue & Harper's Bazaar</div>
-        <span class="mag-tag tag-fashion">Fashion</span>
-      </div>
-    </a>
-
-    <!-- WANDERLUST -->
-    <a href="magazine.html" class="mag-card">
-      <div class="mag-cover">
-        <div class="mag-cover-bg cover-wanderlust">
-          <div class="cover-masthead">Wanderlust</div>
-          <div class="cover-accent"></div>
-          <div class="cover-tagline">Travel & Culture</div>
-          <div class="cover-issue">Issue 02</div>
-        </div>
-        <div class="mag-shine"></div>
-      </div>
-      <div class="mag-info">
-        <div class="mag-name">Wanderlust</div>
-        <div class="mag-desc">Warm editorial with terracotta and gold accents</div>
-        <span class="mag-tag tag-travel">Travel</span>
-      </div>
-    </a>
-
-    <!-- TERRA (animated) -->
-    <a href="natgeo.html" class="mag-card">
-      <div class="mag-cover">
-        <div class="mag-cover-bg cover-terra">
-          <div class="cover-border-inner"></div>
-          <div class="cover-masthead">Terra</div>
-          <div class="cover-tagline">Explore the Planet</div>
-          <div class="cover-issue">Issue 03</div>
-        </div>
-        <div class="mag-shine"></div>
-      </div>
-      <div class="mag-info">
-        <div class="mag-name">Terra</div>
-        <div class="mag-desc">National Geographic-inspired with GSAP animations</div>
-        <span class="mag-tag tag-nature">Nature</span>
-      </div>
-    </a>
-
-    <!-- TERRA STATIC -->
-    <a href="natgeo-static.html" class="mag-card">
-      <div class="mag-cover">
-        <div class="mag-cover-bg cover-terra">
-          <div class="cover-border-inner"></div>
-          <div class="cover-masthead">Terra</div>
-          <div class="cover-tagline">Static Edition</div>
-          <div class="cover-issue">Issue 03b</div>
-        </div>
-        <div class="mag-shine"></div>
-      </div>
-      <div class="mag-info">
-        <div class="mag-name">Terra — Static</div>
-        <div class="mag-desc">Same NatGeo layout without page-flip animations</div>
-        <span class="mag-tag tag-nature">Nature</span>
-      </div>
-    </a>
-
+  <!-- FEATURED STRIP -->
+  <div class="featured-strip">
+    <div class="featured-bar"></div>
+    <div class="featured-copy">
+      <div class="featured-label">About this gallery</div>
+      <div class="featured-headline">Every page, generated by AI.<br>Every word, placed by design.</div>
+      <p class="featured-body">html-magazine is a Claude Code plugin that transforms plain text or markdown into fully paginated, printable HTML magazines — complete with page-flip navigation, sourced photography, and editorial typography. Each issue here was created in a single command.</p>
+    </div>
   </div>
+
+  <!-- SHELF TWO -->
+  <div class="shelf-unit">
+
+    <div class="shelf-wall"></div>
+    <div class="shelf-track-outer">
+      <div class="shelf-track" id="shelf-2">
+
+        <!-- 4: WANDERLUST -->
+        <a href="magazine.html" class="mag cover-4">
+          <div class="mag-spine"></div>
+          <div class="mag-pages"></div>
+          <div class="mag-cover">
+            <iframe
+              src="magazine.html"
+              loading="lazy"
+              scrolling="no"
+              title="WANDERLUST magazine cover"
+              tabindex="-1"
+              aria-hidden="true"
+            ></iframe>
+            <div class="mag-fallback">
+              <div class="fb-title">Wanderlust</div>
+              <div class="fb-rule"></div>
+              <div class="fb-sub">Travel &amp; Culture &mdash; Issue 04</div>
+            </div>
+            <div class="mag-gloss"></div>
+          </div>
+          <div class="mag-shadow"></div>
+          <div class="mag-title-tag">WANDERLUST</div>
+        </a>
+
+        <!-- 5: TERRA Static -->
+        <a href="natgeo-static.html" class="mag cover-5">
+          <div class="mag-spine"></div>
+          <div class="mag-pages"></div>
+          <div class="mag-cover">
+            <iframe
+              src="natgeo-static.html"
+              loading="lazy"
+              scrolling="no"
+              title="TERRA Static magazine cover"
+              tabindex="-1"
+              aria-hidden="true"
+            ></iframe>
+            <div class="mag-fallback">
+              <div class="fb-title">Terra</div>
+              <div class="fb-rule"></div>
+              <div class="fb-sub">Static Edition &mdash; Issue 05</div>
+            </div>
+            <div class="mag-gloss"></div>
+          </div>
+          <div class="mag-shadow"></div>
+          <div class="mag-title-tag">TERRA Static</div>
+        </a>
+
+        <!-- 6: TERRA Animated -->
+        <a href="natgeo.html" class="mag cover-6">
+          <div class="mag-spine"></div>
+          <div class="mag-pages"></div>
+          <div class="mag-cover">
+            <iframe
+              src="natgeo.html"
+              loading="lazy"
+              scrolling="no"
+              title="TERRA magazine cover"
+              tabindex="-1"
+              aria-hidden="true"
+            ></iframe>
+            <div class="mag-fallback">
+              <div class="fb-title">Terra</div>
+              <div class="fb-rule"></div>
+              <div class="fb-sub">Animated &mdash; Issue 06</div>
+            </div>
+            <div class="mag-gloss"></div>
+          </div>
+          <div class="mag-shadow"></div>
+          <div class="mag-title-tag">TERRA</div>
+        </a>
+
+      </div><!-- /shelf-track -->
+    </div><!-- /shelf-track-outer -->
+    <div class="shelf-plank"><div class="plank-sweep"></div></div>
+  </div>
+
 </section>
 
-<!-- ============================================================
-     FOOTER
-     ============================================================ -->
+<!-- ═══ FOOTER ═══ -->
 <footer class="footer">
   <p class="footer-text">
     Built with <a href="https://github.com/bluedusk/html-magazine" class="footer-link">html-magazine</a>
-    — a Claude Code plugin
   </p>
 </footer>
 
-<!-- ============================================================
-     GSAP ANIMATIONS
-     ============================================================ -->
+<!-- ═══════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════ -->
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  if (typeof gsap === 'undefined') return;
-
+/* ─────────────────────────────────────────────────────
+   Wait for GSAP (loaded with defer)
+───────────────────────────────────────────────────── */
+function init() {
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+    setTimeout(init, 50);
+    return;
+  }
   gsap.registerPlugin(ScrollTrigger);
 
-  // Hero entrance
-  const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+  /* ── HERO: character-by-character title reveal ────── */
+  document.querySelectorAll('.hero-title .line').forEach(line => {
+    const text = line.closest('.hero-title').querySelector
+      ? line.getAttribute('data-text') || ''
+      : '';
+    const rawText = line.getAttribute('data-text') || '';
+    rawText.split('').forEach((ch, i) => {
+      const span = document.createElement('span');
+      span.className = 'char';
+      span.textContent = ch === ' ' ? '\u00A0' : ch;
+      line.appendChild(span);
+    });
+  });
 
+  const heroTl = gsap.timeline({ defaults: { ease: 'power4.out' } });
   heroTl
-    .to('.hero-label', {
-      opacity: 1,
-      y: 0,
-      duration: 0.8,
-      delay: 0.3,
-    })
-    .from('.hero-title', {
-      y: 60,
-      duration: 1,
-      ease: 'power4.out',
-    }, '-=0.5')
-    .to('.hero-title', {
-      opacity: 1,
-      duration: 0.8,
-    }, '-=0.8')
-    .to('.hero-sub', {
-      opacity: 1,
-      duration: 0.6,
-    }, '-=0.3')
-    .to('.hero-line', {
-      height: 60,
-      duration: 0.8,
-      ease: 'power2.inOut',
-    }, '-=0.2')
-    .to('.hero-scroll', {
-      opacity: 1,
-      duration: 0.5,
-    }, '-=0.3');
+    .to('.hero-eyebrow', { opacity: 1, y: 0, duration: 1, delay: .3 })
+    .to('.hero-title .char', {
+      opacity: 1, y: 0, rotateX: 0,
+      duration: .7,
+      stagger: { amount: .6, from: 'start' },
+      ease: 'back.out(2)',
+    }, '-=.6')
+    .to('.hero-rule', { width: 200, duration: 1.1, ease: 'power3.inOut' }, '-=.4')
+    .to('.hero-sub', { opacity: 1, duration: .7 }, '-=.5')
+    .to('.hero-scroll', { opacity: 1, duration: .6 }, '-=.3')
+    .to('.hero-scroll-line', { height: 52, duration: 1, ease: 'power2.inOut' }, '-=.4');
 
-  // Scroll indicator pulse
+  /* Scroll pulse for arrow */
   gsap.to('.hero-scroll', {
-    opacity: 0.3,
-    duration: 1.2,
-    repeat: -1,
-    yoyo: true,
-    ease: 'sine.inOut',
-    delay: 2.5,
+    opacity: .25, duration: 1.6, repeat: -1, yoyo: true,
+    ease: 'sine.inOut', delay: 3.5,
   });
 
-  // Magazine cards stagger entrance on scroll
-  const cards = gsap.utils.toArray('.mag-card');
+  /* Rings slow rotation */
+  gsap.to('.ring-1', { rotation: 360, duration: 60, repeat: -1, ease: 'none' });
+  gsap.to('.ring-2', { rotation: -360, duration: 90, repeat: -1, ease: 'none' });
+  gsap.to('.ring-3', { rotation: 360, duration: 130, repeat: -1, ease: 'none' });
 
-  cards.forEach((card, i) => {
-    gsap.to(card, {
-      opacity: 1,
-      y: 0,
-      duration: 0.7,
-      delay: i * 0.12,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: card,
-        start: 'top 85%',
-        once: true,
-      },
+  /* Hero parallax on scroll */
+  gsap.to('.hero-title', {
+    y: -130, opacity: 0, ease: 'none',
+    scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true },
+  });
+  gsap.to('.hero-eyebrow, .hero-rule, .hero-sub', {
+    y: -70, opacity: 0, ease: 'none',
+    scrollTrigger: { trigger: '.hero', start: 'top top', end: '65% top', scrub: true },
+  });
+  gsap.to('.hero-rings', {
+    scale: 1.4, opacity: 0, ease: 'none',
+    scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true },
+  });
+
+  /* ── STORE HEADER reveal ─────────────────────────── */
+  gsap.to('.store-label', {
+    opacity: 1, y: 0, duration: .8, ease: 'power3.out',
+    scrollTrigger: { trigger: '.store-header', start: 'top 85%', once: true },
+  });
+  gsap.to('.store-title', {
+    opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: .12,
+    scrollTrigger: { trigger: '.store-header', start: 'top 85%', once: true },
+  });
+  gsap.to('.store-count', {
+    opacity: 1, duration: .8, ease: 'power3.out', delay: .25,
+    scrollTrigger: { trigger: '.store-header', start: 'top 85%', once: true },
+  });
+
+  /* ── SHELF UNIT LABELS ───────────────────────────── */
+  gsap.utils.toArray('.shelf-unit-label').forEach(el => {
+    gsap.to(el, {
+      opacity: 1, y: 0, duration: .8, ease: 'power3.out',
+      scrollTrigger: { trigger: el, start: 'top 90%', once: true },
     });
   });
 
-  // Parallax on hover for covers
-  cards.forEach(card => {
-    const cover = card.querySelector('.mag-cover-bg');
+  /* ── SHELF PLANKS cinematic slide-in ─────────────── */
+  gsap.utils.toArray('.shelf-plank').forEach((plank, i) => {
+    gsap.fromTo(plank,
+      { scaleX: 0, opacity: 0, transformOrigin: 'left center' },
+      {
+        scaleX: 1, opacity: 1, duration: 1.2, ease: 'power3.out',
+        scrollTrigger: { trigger: plank, start: 'top 92%', once: true },
+        onComplete() {
+          /* Light sweep across plank after it appears */
+          gsap.to(plank.querySelector('.plank-sweep'), {
+            x: '210%', duration: 2.2, ease: 'power2.inOut',
+          });
+        },
+      }
+    );
+  });
 
-    card.addEventListener('mousemove', (e) => {
-      const rect = card.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-
-      gsap.to(cover, {
-        rotateY: x * 6,
-        rotateX: -y * 6,
-        duration: 0.4,
-        ease: 'power2.out',
-        transformPerspective: 800,
-      });
-
-      // Move shine with cursor
-      const shine = card.querySelector('.mag-shine');
-      gsap.to(shine, {
-        background: `linear-gradient(${115 + x * 30}deg, transparent 30%, rgba(255,255,255,0.04) 45%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 55%, transparent 70%)`,
-        duration: 0.3,
-      });
+  /* ── MAGAZINE ENTRANCE ───────────────────────────── */
+  gsap.utils.toArray('.shelf-track').forEach(track => {
+    const mags = track.querySelectorAll('.mag');
+    mags.forEach((mag, idx) => {
+      gsap.fromTo(mag,
+        { opacity: 0, y: 90, rotateY: -28, scale: .8 },
+        {
+          opacity: 1, y: 0, rotateY: 0, scale: 1,
+          duration: .85,
+          delay: idx * .13 + .1,
+          ease: 'back.out(1.5)',
+          scrollTrigger: { trigger: track, start: 'top 88%', once: true },
+          onComplete() {
+            /* Settle into resting tilt after entrance */
+            gsap.to(mag, {
+              rotateY: -9, rotateX: 1.5, duration: .5, ease: 'power3.inOut',
+            });
+          },
+        }
+      );
     });
+  });
 
+  /* ── IFRAME SCALE FIT ────────────────────────────── */
+  function scaleIframes() {
+    document.querySelectorAll('.mag-cover iframe').forEach(iframe => {
+      const cover = iframe.closest('.mag-cover');
+      const w = cover.offsetWidth;
+      const scale = w / 1280;
+      iframe.style.transform = `scale(${scale})`;
+      iframe.style.height = `${Math.ceil(1810 * (1 / scale) * scale)}px`;
+      /* recalculate: we want iframe visible height = cover height */
+      const coverH = cover.offsetHeight;
+      iframe.style.height = `${Math.ceil(coverH / scale)}px`;
+    });
+  }
+  scaleIframes();
+  window.addEventListener('resize', scaleIframes);
+
+  /* Hide fallback when iframe loads cleanly */
+  document.querySelectorAll('.mag-cover iframe').forEach(iframe => {
+    iframe.addEventListener('load', () => {
+      const fallback = iframe.closest('.mag-cover').querySelector('.mag-fallback');
+      if (fallback) {
+        gsap.to(fallback, { opacity: 0, duration: .4 });
+      }
+    });
+  });
+
+  /* ── 3D CURSOR TRACKING hover ────────────────────── */
+  document.querySelectorAll('.mag').forEach(card => {
+    const gloss = card.querySelector('.mag-gloss');
+    let isHovered = false;
+    let raf = null;
+    let targetX = -9, targetY = 1.5;
+    let currentX = -9, currentY = 1.5;
+
+    card.addEventListener('mouseenter', () => { isHovered = true; });
     card.addEventListener('mouseleave', () => {
-      gsap.to(cover, {
-        rotateY: 0,
-        rotateX: 0,
-        duration: 0.6,
-        ease: 'power3.out',
+      isHovered = false;
+      gsap.to(card, {
+        rotateY: -9, rotateX: 1.5,
+        duration: .5, ease: 'power3.out',
       });
     });
-  });
-});
-</script>
 
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const nx = (e.clientX - r.left) / r.width  - .5; /* -0.5 .. +0.5 */
+      const ny = (e.clientY - r.top)  / r.height - .5;
+
+      /* Tilt during hover (overrides hover CSS slightly) */
+      gsap.to(card, {
+        rotateY: nx * 18,
+        rotateX: -ny * 12,
+        duration: .3,
+        ease: 'power2.out',
+        overwrite: 'auto',
+      });
+
+      /* Gloss highlight follows cursor */
+      if (gloss) {
+        const angle = 118 + nx * 60;
+        const base = .07 + Math.abs(nx) * .1;
+        gsap.to(gloss, {
+          background: `linear-gradient(${angle}deg,
+            rgba(255,255,255,0) 20%,
+            rgba(255,255,255,${(base * .5).toFixed(3)}) 42%,
+            rgba(255,255,255,${base.toFixed(3)}) 50%,
+            rgba(255,255,255,${(base * .5).toFixed(3)}) 58%,
+            rgba(255,255,255,0) 78%
+          )`,
+          duration: .25,
+        });
+      }
+    });
+  });
+
+  /* ── HORIZONTAL DRAG ─────────────────────────────── */
+  document.querySelectorAll('.shelf-track').forEach(track => {
+    let startX, startScroll, dragging = false;
+
+    track.addEventListener('mousedown', e => {
+      dragging = true;
+      startX = e.clientX;
+      startScroll = track.scrollLeft;
+      track.classList.add('dragging');
+    });
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      track.scrollLeft = startScroll - (e.clientX - startX);
+    });
+    document.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      track.classList.remove('dragging');
+    });
+    /* Touch support */
+    track.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      startScroll = track.scrollLeft;
+    }, { passive: true });
+    track.addEventListener('touchmove', e => {
+      track.scrollLeft = startScroll - (e.touches[0].clientX - startX);
+    }, { passive: true });
+  });
+
+  /* ── SPOTLIGHT follows scroll position ───────────── */
+  const spotlight = document.getElementById('spotlight');
+  ScrollTrigger.create({
+    trigger: 'body',
+    start: 'top top',
+    end: 'bottom bottom',
+    onUpdate(self) {
+      const prog = self.progress;
+      const y = -100 + prog * 200; /* -100% → 100% */
+      spotlight.style.background = `radial-gradient(
+        ellipse 500px 350px at 50% ${y}%,
+        rgba(201,169,110,.055) 0%,
+        transparent 70%
+      )`;
+    },
+  });
+
+  /* ── AMBIENT LIGHT drift on scroll ───────────────── */
+  ScrollTrigger.create({
+    trigger: 'body',
+    start: 'top top',
+    end: 'bottom bottom',
+    onUpdate(self) {
+      const p = self.progress;
+      const ambient = document.getElementById('ambient');
+      const r = Math.round(p * 60);
+      const g = Math.round(p * 30);
+      ambient.style.background = `
+        radial-gradient(ellipse 90% 55% at ${30 + p * 40}% ${p * 100}%,
+          rgba(${180 + r},${120 + g},70, .04) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 40% at ${70 - p * 40}% ${100 - p * 100}%,
+          rgba(200,16,46, .025) 0%, transparent 55%)
+      `;
+    },
+  });
+
+  /* ── FEATURED STRIP reveal ───────────────────────── */
+  gsap.to('.featured-bar', {
+    opacity: 1, duration: .8, ease: 'power3.out',
+    scrollTrigger: { trigger: '.featured-strip', start: 'top 80%', once: true },
+  });
+  gsap.to('.featured-copy', {
+    opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: .15,
+    scrollTrigger: { trigger: '.featured-strip', start: 'top 80%', once: true },
+  });
+
+  /* ── FOOTER reveal ───────────────────────────────── */
+  gsap.from('.footer', {
+    opacity: 0, y: 28, duration: .9, ease: 'power3.out',
+    scrollTrigger: { trigger: '.footer', start: 'top 95%', once: true },
+  });
+}
+
+/* Kick off after DOM + deferred scripts */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
 </body>
 </html>

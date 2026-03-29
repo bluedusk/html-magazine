@@ -53,12 +53,16 @@ Reference files define editorial voice, visual tone, and media mood only — no 
 
 Demo magazines live in `samples/` and are deployed to **https://samples-six-omega.vercel.app/**.
 
-To deploy the samples:
+Vercel project: **bluedusks-projects/samples**
+
+To rebuild the index and deploy:
 ```bash
-npx vercel deploy samples/ --yes
+python3 scripts/deploy-samples.py              # rebuild index.html + deploy
+python3 scripts/deploy-samples.py --no-deploy   # rebuild only
+python3 scripts/deploy-samples.py --deploy-only  # deploy without rebuilding
 ```
 
-When adding a new sample, also update `samples/index.html` to link to it.
+The index page (`samples/index.html`) is a hand-crafted magazine shelf gallery with GSAP animations and iframe cover previews. The deploy script can regenerate a simpler version, but the current hand-crafted version should be preserved — use `--deploy-only` to deploy without overwriting it.
 
 ## Output constraints
 

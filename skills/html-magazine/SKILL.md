@@ -1,6 +1,6 @@
 ---
 name: html-magazine
-description: "Transforms plain text, markdown, or existing HTML into a beautifully styled self-contained HTML magazine page with a real paper-magazine feel — paginated with page-flip navigation, sourced photography, and print-inspired typography. Use whenever the user says 'turn this into a magazine', 'make this look like a magazine article', 'magazine layout', 'magazine format', or wants content presented as a physical-magazine-style HTML page. Also trigger when the user shares text or markdown and asks for polished publication-quality output, editorial-style layout, or print-quality design. Supports four styles: Editorial (NYT / The Atlantic), Tech Minimal (Wired / MIT Technology Review), Vibrant Lifestyle (Vogue / GQ), and Business (The Economist / Fortune)."
+description: "Transforms plain text, markdown, existing HTML, or images into a beautifully styled self-contained HTML magazine page with a real paper-magazine feel — paginated with page-flip navigation, sourced photography, and print-inspired typography. Use whenever the user says 'turn this into a magazine', 'make this look like a magazine article', 'magazine layout', 'magazine format', or wants content presented as a physical-magazine-style HTML page. Also trigger when the user shares text, markdown, or an image and asks for polished publication-quality output, editorial-style layout, or print-quality design. Supports four styles: Editorial (NYT / The Atlantic), Tech Minimal (Wired / MIT Technology Review), Vibrant Lifestyle (Vogue / GQ), and Business (The Economist / Fortune)."
 ---
 
 # HTML Magazine
@@ -26,10 +26,11 @@ If `AskUserQuestion` is not available, ask the same questions as plain text in t
 
 ### 1. Collect Content
 
-If the user hasn't provided content, ask for it. Accept:
+If the user hasn't provided content, ask for it and **wait for their response before proceeding to Step 2**. Do not ask about style or rewrite level until content has been received. Accept:
 - **Plain text or markdown** — pasted or typed
 - **A file path** — read the file
 - **Existing HTML** — extract the text content
+- **An image** — file path or pasted image; use vision to read it, then extract all visible text and describe any visual context (charts, photos, diagrams) as prose. Treat the extracted content as the input text for the magazine.
 
 ### 2. Ask Style
 
@@ -50,6 +51,14 @@ Present four options using `AskUserQuestion`:
 2. **Light** — Tighten prose, improve flow, add structure. Preserve the author's voice.
 3. **Moderate** — Rewrite for magazine quality. Apply the style's editorial voice. Core ideas remain.
 4. **Full** — Complete editorial transformation. Fully adopt the style's voice. A new piece inspired by the input.
+
+### 3b. Ask Media Preference
+
+Present three options using `AskUserQuestion`:
+
+1. **Images** — Source and embed photographs that match the content and style
+2. **Images + Video** — Source photographs and background video loops for key pages
+3. **None** — Pure CSS/SVG decorative design (geometric patterns, gradients, abstract shapes — no external media)
 
 ### 4. Read the Style Reference
 
@@ -94,8 +103,9 @@ Invoke the `ui-ux-pro-max` skill. The prompt should include:
 1. **Style line** — the magazine family + randomly picked sub-style (e.g., "youth culture magazine like Dazed/i-D, with a pastel collage scrapbook feel")
 2. **Editorial voice** — from the style reference (so ui-ux-pro-max understands the tone)
 3. **Media mood** — from the style reference (so it knows what images/videos to find)
-4. **Rewritten content** — all magazine elements (masthead, kicker, headline, deck, byline, sections, pull quotes)
-5. **Rendering requirements** — below
+4. **Media preference** — the user's choice: "images", "images + video", or "none (pure CSS/SVG)"
+5. **Rewritten content** — all magazine elements (masthead, kicker, headline, deck, byline, sections, pull quotes)
+6. **Rendering requirements** — below
 
 Do not prescribe colors, fonts, or layout details. Let ui-ux-pro-max make all visual decisions based on the style line and its own design system.
 
@@ -132,12 +142,26 @@ PAGES TO GENERATE:
 3. Body pages — sections with images, pull quotes, sidebars
 4. Closing page — final section, author credit, publication footer
 
-IMAGES & MEDIA:
-- You (ui-ux-pro-max) are responsible for sourcing images and videos that match the content
-- Search for and embed relevant images and videos that complement the article
+IMAGES & MEDIA (follow the user's media preference):
+
+If media preference is "images":
+- You (ui-ux-pro-max) are responsible for sourcing photographs that match the content
+- Search for and embed relevant images that complement the article
+- Follow the media mood from the style reference included above
+- If you can't find suitable media, fall back to CSS-only visuals for that element
+
+If media preference is "images + video":
+- Source both photographs and background video loops
 - Use background video loops (muted, autoplay, looping) on key pages — cover, section openers, or visual breaks. Pause/play videos based on page visibility.
 - Follow the media mood from the style reference included above
-- If you can't find suitable media, use CSS-only visuals (gradients, geometric patterns, color blocks)
+- If you can't find suitable media, fall back to CSS-only visuals for that element
+
+If media preference is "none":
+- Do NOT source or embed any external images or videos
+- Use pure CSS and inline SVG for ALL visual elements
+- Create striking decorative designs: geometric patterns, gradients, abstract shapes, clip-path compositions, SVG illustrations, ornamental borders, and color blocks
+- Each page should have strong visual identity through CSS/SVG art alone
+- This should feel intentionally designed, not like missing images — think art zine, brutalist editorial, or modernist print
 
 BRANDING:
 - Add a small "Built with html-magazine" watermark in the bottom-right corner of the page
@@ -202,6 +226,6 @@ Before saving, verify:
 - [ ] Drop cap (or style-appropriate opening treatment) on first paragraph
 - [ ] At least one pull quote present and visually distinct
 - [ ] Page numbers on every page
-- [ ] Images embedded with attribution (or CSS fallback)
+- [ ] Media matches user preference (images, images+video, or pure CSS/SVG)
 - [ ] Editorial voice matches the chosen style and rewrite level
 - [ ] File works offline (except image URLs)

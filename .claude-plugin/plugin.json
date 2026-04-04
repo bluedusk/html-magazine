@@ -1,7 +1,7 @@
 {
   "name": "html-magazine",
   "description": "Transforms text content into stunning self-contained HTML magazine pages with a real paper-magazine feel — paginated, image-rich, and print-inspired typography.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "danzhu"
   }

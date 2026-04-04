@@ -20,7 +20,6 @@ The skill does not write HTML itself — it always delegates rendering to `ui-ux
 | Command | File | Purpose |
 |---------|------|---------|
 | `/html-magazine` | `commands/html-magazine.md` | Invoke the skill to transform content |
-| `/release` | `commands/release.md` | Cut a release (bump version, tag, push, create GitHub release) |
 
 ## Release process
 

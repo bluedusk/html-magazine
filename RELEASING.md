@@ -1,15 +1,5 @@
 # Releasing html-magazine
 
-## Quick release
-
-Run `/release` in Claude Code. It will:
-
-1. Ask for the new version (patch / minor / major or explicit)
-2. Help draft release notes from git log
-3. Bump `.claude-plugin/plugin.json`
-4. Commit, tag, and push
-5. Create the GitHub release
-
 ## Version files
 
 Only one file needs to be updated on each release:
